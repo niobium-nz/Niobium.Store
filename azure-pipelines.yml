@@ -1,0 +1,109 @@
+name: '1.0$(Rev:.r)'
+trigger:
+- master
+
+parameters:
+- name: updateInfrastructure
+  type: boolean
+  default: false
+  displayName: Update Infrastructure
+  values:
+    - true
+    - false
+
+variables:
+  buildAgentVmImage: 'windows-latest'
+  serviceConnection: 'niobium-store'
+  resourceGroupName: 'niobium-store'
+
+pool:
+  vmImage: $(buildAgentVmImage)
+
+resources: 
+  repositories:
+  - repository: devops
+    endpoint: CodRepo
+    type: git
+    name: cod/Cod.Infrastructures
+    ref: master
+
+stages:
+- stage: Production
+  jobs:
+  - template: pipelines/jobs/GenericDotnetBuild.yml@devops
+    parameters:
+      nugetVSTSFeedID: 'Niobium/niobium'
+      projectToPublish: '**/Niobium.Store.Functions.csproj'
+
+  - template: pipelines/jobs/FunctionAppInfrastructure.yml@devops
+    parameters:
+      enabled: ${{ parameters.updateInfrastructure }}
+      azureServiceConnection: $(serviceConnection)
+      resourceGroupName: $(resourceGroupName)
+      appNamePrefix: 'niobiumstore'
+      enableKeyVault: true
+      enableStagingSlot: true
+      allowedOrigins: 'https://www.niobium.co.nz'
+      checkoutDevopsStep:
+        checkout: devops
+
+  - job: Table
+    dependsOn: 
+      - Infrastructure
+    condition: succeeded()
+    pool:
+      vmImage: $(buildAgentVmImage)
+    variables:
+      functionAppPrincipalId: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalId']]
+    steps:
+    - checkout: devops
+    - template: pipelines/steps/newStorageAccount.yml@devops
+      parameters:
+        azureServiceConnection: $(serviceConnection)
+        resourceGroupName: $(resourceGroupName)
+        storageAccountName: 'niobiumstoredb'
+        contributorPrincipalId: $(functionAppPrincipalId)
+        allowedOrigins: 'http://localhost:7109,https://www.niobium.co.nz'
+
+  - job: Configuration
+    dependsOn:
+      - Infrastructure
+      - Table
+    condition: succeeded()
+    pool:
+      vmImage: $(buildAgentVmImage)
+    variables:
+      functionAppName: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppName']]
+      tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableFQDN']]
+      keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
+    steps:
+    - checkout: none
+    - task: AzureAppServiceSettings@1
+      displayName: 'Update AppSettings'
+      inputs:
+        azureSubscription: $(serviceConnection)
+        appName: $(functionAppName)
+        resourceGroupName: $(resourceGroupName)
+        appSettings: |
+          [
+            {
+              "name": "StorageTableOptions:FullyQualifiedDomainName",
+              "value": "$(tableFQDN)",
+              "slotSetting": false
+            },
+            {
+              "name": "PaymentServiceOptions:SecretAPIKey",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET/)",
+              "slotSetting": false
+            },
+            {
+              "name": "CaptchaOptions:Secret",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/RECAPTCHA-SECRET/)",
+              "slotSetting": false
+            }
+          ]
+      
+  - template: pipelines/jobs/FunctionAppDeploy.yml@devops
+    parameters:
+      serviceConnection: $(serviceConnection)
+      resourceGroupName: $(resourceGroupName)
