@@ -1,11 +1,11 @@
 using Cod.Database.StorageTable;
-using Cod.Platform;
-using Cod.Platform.Captcha;
-using Cod.Platform.Captcha.Recaptcha;
+using Cod.Platform.Captcha.ReCaptcha;
+using Cod.Platform.Finance;
 using Cod.Platform.Finance.Stripe;
 using Cod.Platform.StorageTable;
-using Microsoft.Extensions.Configuration;
+using Cod.Table.StorageAccount;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Niobium.Store.Functions
 {
@@ -13,21 +13,22 @@ namespace Niobium.Store.Functions
     {
         private static volatile bool loaded;
 
-        public static IServiceCollection AddStore(this IServiceCollection services, IConfiguration configuration)
+        public static void AddStore(this IHostApplicationBuilder builder)
         {
             if (loaded)
             {
-                return services;
+                return;
             }
 
             loaded = true;
 
-            var isDevelopment = configuration.IsDevelopmentEnvironment();
-            return services.AddFinance(configuration.GetRequiredSection(nameof(PaymentServiceOptions)))
-                .AddDatabase(configuration.GetRequiredSection(nameof(StorageTableOptions)))
-                    .PostConfigure<StorageTableOptions>(opt => opt.EnableInteractiveIdentity = isDevelopment)
-                    .AddMemoryCachedRepository<Listing>()
-                .AddCaptcha(configuration.GetRequiredSection(nameof(CaptchaOptions)));
+            builder.AddFinance();
+            builder.AddDatabase();
+            builder.AddCaptcha();
+
+            builder.Services.AddTransient(typeof(CloudTableRepository<>));
+            builder.Services.AddMemoryCachedRepository<Listing>();
+            builder.Services.AddMemoryCachedRepository<ShippingOption>();
         }
     }
 }

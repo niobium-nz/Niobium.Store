@@ -1,8 +1,10 @@
-﻿using Cod;
+using System.Diagnostics.CodeAnalysis;
+using Cod;
 
 namespace Niobium.Store
 {
-    public class ShippingOption
+    [method: SetsRequiredMembers]
+    public class ShippingOption()
     {
         [EntityKey(EntityKeyKind.PartitionKey)]
         public required string PartitionKey { get; set; }

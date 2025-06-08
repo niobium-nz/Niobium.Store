@@ -1,4 +1,5 @@
 using Cod.Platform.Finance.Stripe;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +13,8 @@ builder.UsePlatformPayment();
 
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights()
-    .AddStore(builder.Configuration);
+    .ConfigureFunctionsApplicationInsights();
+
+builder.AddStore();
 
 builder.Build().Run();

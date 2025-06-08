@@ -1,5 +1,5 @@
-﻿using Cod;
 using System.Diagnostics.CodeAnalysis;
+using Cod;
 
 namespace Niobium.Store
 {
@@ -26,7 +26,15 @@ namespace Niobium.Store
 
         public required string Currency { get; set; }
 
+        public required string SKU { get; set; }
+
+        public long TaxRate { get; set; }
+
+        public string? TaxKind { get; set; }
+
         public required string ShippingOptions { get; set; }
+
+        public required string Culture { get; set; }
 
         public string? Note { get; set; }
 
