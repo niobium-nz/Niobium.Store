@@ -1,0 +1,48 @@
+using Cod;
+using Cod.Platform;
+using Cod.Platform.Finance;
+using Microsoft.Extensions.Logging;
+
+namespace Niobium.Store
+{
+    public class CustomerDomain(
+        Lazy<IRepository<Customer>> repo,
+        IEnumerable<IDomainEventHandler<IDomain<Customer>>> eventHandlers,
+        Lazy<IQueryableRepository<Transaction>> transactionRepo,
+        Lazy<IQueryableRepository<Accounting>> accountingRepo,
+        Lazy<IEnumerable<IAccountingAuditor>> auditors,
+        Lazy<ICacheStore> cacheStore,
+        IDomainRepository<OrderDomain, Order> orderRepo,
+        ILogger logger)
+         : AccountableDomain<Customer>(repo, eventHandlers, transactionRepo, accountingRepo, auditors, cacheStore, logger)
+    {
+        private const string OrderSettlementRemark = "OrderSettlement";
+
+        public override string AccountingPrincipal => this.RowKey;
+
+        public async Task<bool> SettleAsync(long order, CancellationToken cancellationToken = default)
+        {
+            var orderDomain = await orderRepo.GetAsync(Order.BuildPartitionKey(Customer.ParseID(this.PartitionKey)), Order.BuildRowKey(order), cancellationToken: cancellationToken);
+            var due = await orderDomain.FigureDueAsync(cancellationToken);
+
+            var fullID = new StorageKey { PartitionKey = this.PartitionKey, RowKey = this.RowKey };
+            var balance = await this.GetBalanceAsync(DateTimeOffset.UtcNow);
+            if (balance.Available < due.Cents)
+            {
+                var error = $"Insufficient balance to settle order {fullID}. Required: {due}, Available: {balance.Available}";
+                Logger.LogWarning(error);
+                return false; // Not enough balance to settle the order.
+            }
+
+            await this.FreezeAsync(due.Cents);
+            Logger.LogInformation($"Settling order {fullID} with amount {due} , current balance available:  {balance.Available}");
+
+            IEnumerable<Transaction> transactions = await this.MakeTransactionAsync(-due.Cents, (int)TransactionReason.Spend, OrderSettlementRemark, fullID.ToString());
+            var result = await orderDomain.PayAsync(transactions.Single(), cancellationToken);
+            Logger.LogInformation($"Order {fullID} settled by transaction: {transactions.Single().GetID()}");
+
+            await this.UnfreezeAsync(due.Cents);
+            return result;
+        }
+    }
+}

@@ -1,4 +1,4 @@
-﻿using Cod;
+using Cod;
 
 namespace Niobium.Store
 {
@@ -61,6 +61,8 @@ namespace Niobium.Store
         public required string BillingPostcode { get; set; }
 
         public static string BuildPartitionKey(Guid id) => id.ToString()[..6];
+
+        public static Guid ParseID(string partitionKey) => Guid.Parse(partitionKey);
 
         public static string BuildRowKey(Guid id) => id.ToString();
     }

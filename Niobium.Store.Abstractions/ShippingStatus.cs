@@ -1,15 +1,16 @@
-﻿namespace Niobium.Store
+namespace Niobium.Store
 {
     public enum ShippingStatus : int
     {
-        Pending = 0,
-        Processed = 1,
-        Shipped = 2,
-        Customs = 3,
-        Delivering = 4,
-        DeliverAttemptFailed = 5,
-        Delivered = 6,
-        Returned = 7,
-        Cancelled = 8
+        NotApplicable = 0,
+        Pending = 1,
+        Processed = 2,
+        Shipped = 3,
+        Customs = 4,
+        Delivering = 5,
+        DeliverAttemptFailed = 6,
+        Delivered = 7,
+        Returned = 8,
+        Cancelled = 9
     }
 }

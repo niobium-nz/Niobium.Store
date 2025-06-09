@@ -88,6 +88,8 @@ namespace Niobium.Store
 
         public string? IP { get; set; }
 
+        public string? Transactions { get; set; }
+
         public long GetID() => ParseID(Created);
 
         public string GetFullID() => BuildFullID(Customer, GetID());

@@ -28,7 +28,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cod.Abstractions" Version="2.2.63" />
-    <PackageReference Include="Cod.Helper" Version="2.2.63" />
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="Cod.Platform.Finance" Version="2.2.63" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Niobium.Store.Abstractions\Niobium.Store.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

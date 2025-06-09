@@ -97,6 +97,11 @@ stages:
               "slotSetting": false
             },
             {
+              "name": "PaymentServiceOptions:SecretHashKey",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/HASH-SECRET/)",
+              "slotSetting": false
+            },
+            {
               "name": "CaptchaOptions:Secrets:www.niobium.co.nz",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/RECAPTCHA-SECRET-WWW-NIOBIUM-CO-NZ/)",
               "slotSetting": false

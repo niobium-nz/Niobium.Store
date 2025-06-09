@@ -25,6 +25,7 @@ namespace Niobium.Store.Functions
             builder.AddFinance();
             builder.AddDatabase();
             builder.AddCaptcha();
+            builder.AddCore();
 
             builder.Services.AddTransient(typeof(CloudTableRepository<>));
             builder.Services.AddMemoryCachedRepository<Listing>();

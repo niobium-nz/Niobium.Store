@@ -1,12 +1,13 @@
-﻿namespace Niobium.Store
+namespace Niobium.Store
 {
     public enum OrderStatus : int
     {
         Created = 0,
-        Paid = 1,
-        Shipped = 2,
-        Completed = 3,
-        Cancelled = 4,
-        Refunded = 5
+        PartiallyPaid = 1,
+        Paid = 2,
+        Shipped = 3,
+        Completed = 4,
+        Cancelled = 5,
+        Refunded = 6
     }
 }

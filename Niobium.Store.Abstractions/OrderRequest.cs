@@ -1,11 +1,16 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using Cod;
 
 namespace Niobium.Store
 {
-    public class OrderRequest
+    public class OrderRequest : IUserInput, IValidatableObject
     {
         [Required]
         public required Guid ID { get; set; }
+
+        [Required]
+        public required long Timestamp { get; set; }
 
         [Required]
         public required List<CartItem> Cart { get; set; } = [];
@@ -88,5 +93,95 @@ namespace Niobium.Store
 
         [StringLength(10)]
         public required string BillingPostcode { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (!Country.TryParse(ShippingCountry, out _))
+            {
+                yield return new ValidationResult($"Invalid country code: {ShippingCountry}", [nameof(ShippingCountry)]);
+            }
+
+            if (Cart.Count == 0)
+            {
+                yield return new ValidationResult($"No valid listings found from the order: {ID}", [nameof(Cart)]);
+            }
+
+            if (Timestamp <= 0 || DateTimeOffset.UtcNow - DateTimeOffsetExtensions.FromReverseUnixTimeMilliseconds(Timestamp) > TimeSpan.FromMinutes(20))
+            {
+                yield return new ValidationResult($"Invalid order time on the order: {ID}", [nameof(Cart)]);
+            }
+        }
+
+        public void Sanitize()
+        {
+            if (!CultureInfoExtensions.TryParseCultureInfo(Culture, out var culture))
+            {
+                culture = new CultureInfo("en-US");
+            }
+
+            Culture = culture.Name;
+            Captcha = Captcha.Trim();
+            Coupon = Coupon?.Trim().ToUpperInvariant();
+            Notes = Notes?.Trim();
+            Consignee = culture.ToTitleCase(Consignee.Trim());
+
+            //TODO (whan) Phone number -> E.164 format
+            //TODO (whan) Postcode -> validate according to specific country
+
+            ShippingAddressLine1 = culture.ToTitleCase(ShippingAddressLine1.Trim());
+            if (ShippingAddressLine2 != null)
+            {
+                ShippingAddressLine2 = culture.ToTitleCase(ShippingAddressLine2.Trim());
+            }
+
+            if (ShippingSuburb != null)
+            {
+                ShippingSuburb = culture.ToTitleCase(ShippingSuburb.Trim());
+            }
+
+            ShippingCity = culture.ToTitleCase(ShippingCity.Trim());
+
+            if (ShippingState != null)
+            {
+                ShippingState = culture.ToTitleCase(ShippingState.Trim());
+            }
+
+            ShippingPostcode = ShippingPostcode.Trim();
+            BillingName = culture.ToTitleCase(BillingName.Trim());
+
+            if (BillingBusiness != null)
+            {
+                BillingBusiness = culture.ToTitleCase(BillingBusiness.Trim());
+            }
+
+            BillingAddressLine1 = culture.ToTitleCase(BillingAddressLine1.Trim());
+            if (BillingAddressLine2 != null)
+            {
+                BillingAddressLine2 = culture.ToTitleCase(BillingAddressLine2.Trim());
+            }
+            if (BillingSuburb != null)
+            {
+                BillingSuburb = culture.ToTitleCase(BillingSuburb.Trim());
+            }
+            BillingCity = culture.ToTitleCase(BillingCity.Trim());
+
+            if (BillingState != null)
+            {
+                BillingState = culture.ToTitleCase(BillingState.Trim());
+            }
+
+            BillingPostcode = BillingPostcode.Trim();
+            Email = Email.Trim().ToLowerInvariant();
+
+            if (Country.TryParse(ShippingCountry, out var country))
+            {
+                ShippingCountry = country.Alpha2;
+            }
+
+            if (Country.TryParse(BillingCountry, out country))
+            {
+                BillingCountry = country.Alpha2;
+            }
+        }
     }
 }

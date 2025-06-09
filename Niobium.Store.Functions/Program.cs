@@ -1,4 +1,4 @@
-using Cod.Platform.Finance.Stripe;
+using Cod.Platform.Finance;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
