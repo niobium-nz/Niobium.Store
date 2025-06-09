@@ -20,13 +20,29 @@ namespace Niobium.Store
 
         public override string AccountingPrincipal => this.RowKey;
 
+        public async Task<Customer> CreateCustomerIfNotExistAsync(Customer customer, CancellationToken cancellationToken)
+        {
+            var existingCustomer = await this.GetEntityAsync(cancellationToken);
+            if (existingCustomer != null)
+            {
+                Logger.LogInformation($"Customer {this.RowKey} already exists. No action taken.");
+                return existingCustomer;
+            }
+
+            var result = await this.Repository.CreateAsync(customer, cancellationToken: cancellationToken);
+            await this.InitializeBalanceAsync(cancellationToken); 
+            await this.InitializeDeltaAsync(cancellationToken); 
+
+            return result;
+        }
+
         public async Task<bool> SettleAsync(long order, CancellationToken cancellationToken = default)
         {
             var orderDomain = await orderRepo.GetAsync(Order.BuildPartitionKey(Customer.ParseID(this.RowKey)), Order.BuildRowKey(order), cancellationToken: cancellationToken);
             var due = await orderDomain.FigureDueAsync(cancellationToken);
 
             var fullID = new StorageKey { PartitionKey = orderDomain.PartitionKey, RowKey = orderDomain.RowKey };
-            var balance = await this.GetBalanceAsync(DateTimeOffset.UtcNow);
+            var balance = await this.GetBalanceAsync(DateTimeOffset.UtcNow, cancellationToken);
             if (balance.Available < due.Cents)
             {
                 var error = $"Insufficient balance to settle order {fullID}. Required: {due}, Available: {balance.Available}";

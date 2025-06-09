@@ -29,6 +29,7 @@ namespace Niobium.Store
             builder.Services.AddDomain<CustomerDomain, Customer>();
             builder.Services.AddDomain<ShippingOptionDomain, ShippingOption>();
             builder.Services.AddDomainEventHandler<OrderSettler, Transaction>();
+            builder.Services.AddDomainEventHandler<CustomerCreator, Order>();
         }
     }
 }
