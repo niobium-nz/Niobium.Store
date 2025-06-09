@@ -1,8 +1,8 @@
 using AutoMapper;
 using Cod;
 using Cod.Platform.Finance;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Niobium.Store
 {
@@ -14,7 +14,7 @@ namespace Niobium.Store
             cfg.CreateMap<Order, OrderResponse>();
         });
 
-        public static void AddCore(this IHostApplicationBuilder builder)
+        public static void AddCore(this IFunctionsWorkerApplicationBuilder builder)
         {
             if (loaded)
             {
@@ -23,6 +23,7 @@ namespace Niobium.Store
 
             loaded = true;
 
+            builder.UsePlatformPayment<CustomerDepositRecorder, CustomerDomain, Customer>();
             builder.Services.AddTransient(sp => mapperConfiguration.CreateMapper());
             builder.Services.AddDomain<OrderDomain, Order>();
             builder.Services.AddDomain<CustomerDomain, Customer>();

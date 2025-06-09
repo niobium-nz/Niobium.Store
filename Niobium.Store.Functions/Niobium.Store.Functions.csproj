@@ -29,9 +29,9 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.2" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.4" />
-    <PackageReference Include="Cod.Platform.Captcha.Recaptcha" Version="2.2.63" />
-    <PackageReference Include="Cod.Platform.Finance.Stripe" Version="2.2.63" />
-    <PackageReference Include="Cod.Platform.StorageTable" Version="2.2.63" />
+    <PackageReference Include="Cod.Platform.Captcha.Recaptcha" Version="2.2.64" />
+    <PackageReference Include="Cod.Platform.Finance.Stripe" Version="2.2.64" />
+    <PackageReference Include="Cod.Platform.StorageTable" Version="2.2.64" />
   </ItemGroup>
 
   <ItemGroup>

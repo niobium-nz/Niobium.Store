@@ -13,7 +13,7 @@ namespace Niobium.Store
         Lazy<IEnumerable<IAccountingAuditor>> auditors,
         Lazy<ICacheStore> cacheStore,
         IDomainRepository<OrderDomain, Order> orderRepo,
-        ILogger logger)
+        ILogger<CustomerDomain> logger)
          : AccountableDomain<Customer>(repo, eventHandlers, transactionRepo, accountingRepo, auditors, cacheStore, logger)
     {
         private const string OrderSettlementRemark = "OrderSettlement";
@@ -22,10 +22,10 @@ namespace Niobium.Store
 
         public async Task<bool> SettleAsync(long order, CancellationToken cancellationToken = default)
         {
-            var orderDomain = await orderRepo.GetAsync(Order.BuildPartitionKey(Customer.ParseID(this.PartitionKey)), Order.BuildRowKey(order), cancellationToken: cancellationToken);
+            var orderDomain = await orderRepo.GetAsync(Order.BuildPartitionKey(Customer.ParseID(this.RowKey)), Order.BuildRowKey(order), cancellationToken: cancellationToken);
             var due = await orderDomain.FigureDueAsync(cancellationToken);
 
-            var fullID = new StorageKey { PartitionKey = this.PartitionKey, RowKey = this.RowKey };
+            var fullID = new StorageKey { PartitionKey = orderDomain.PartitionKey, RowKey = orderDomain.RowKey };
             var balance = await this.GetBalanceAsync(DateTimeOffset.UtcNow);
             if (balance.Available < due.Cents)
             {

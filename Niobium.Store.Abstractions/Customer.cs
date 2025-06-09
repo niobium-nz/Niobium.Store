@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Cod;
 
 namespace Niobium.Store
 {
-    public class Customer : ITrackable
+    [method: SetsRequiredMembers]
+    public class Customer() : ITrackable
     {
         [EntityKey(EntityKeyKind.PartitionKey)]
         public required string Prefix { get; set; }

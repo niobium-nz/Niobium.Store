@@ -4,8 +4,8 @@ using Cod.Platform.Finance;
 using Cod.Platform.Finance.Stripe;
 using Cod.Platform.StorageTable;
 using Cod.Table.StorageAccount;
+using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Niobium.Store.Functions
 {
@@ -13,7 +13,7 @@ namespace Niobium.Store.Functions
     {
         private static volatile bool loaded;
 
-        public static void AddStore(this IHostApplicationBuilder builder)
+        public static void AddStore(this FunctionsApplicationBuilder builder)
         {
             if (loaded)
             {
@@ -22,10 +22,10 @@ namespace Niobium.Store.Functions
 
             loaded = true;
 
+            builder.AddCore();
             builder.AddFinance();
             builder.AddDatabase();
             builder.AddCaptcha();
-            builder.AddCore();
 
             builder.Services.AddTransient(typeof(CloudTableRepository<>));
             builder.Services.AddMemoryCachedRepository<Listing>();
