@@ -90,7 +90,6 @@ stages:
       inputs:
         azureSubscription: $(serviceConnection)
         appName: $(appName)
-        slotName: $(slotName)
         resourceGroupName: $(resourceGroupName)
         appSettings: |
           [
@@ -102,25 +101,50 @@ stages:
             {
               "name": "PaymentServiceOptions:SecretAPIKey",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET/)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "PaymentServiceOptions:SecretHashKey",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/HASH-SECRET/)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "CaptchaOptions:Secrets:www.niobium.co.nz",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/RECAPTCHA-SECRET-WWW-NIOBIUM-CO-NZ/)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "CaptchaOptions:Secrets:www.zaps.co.nz",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/RECAPTCHA-SECRET-WWW-ZAPS-CO-NZ/)",
-              "slotSetting": false
+              "slotSetting": true
             }
           ]
-      
+    - task: AzureAppServiceSettings@1
+      displayName: 'Update AppSettings'
+      inputs:
+        azureSubscription: $(serviceConnection)
+        appName: $(appName)
+        slotName: $(slotName)
+        resourceGroupName: $(resourceGroupName)
+        appSettings: |
+          [
+            {
+              "name": "PaymentServiceOptions:SecretAPIKey",
+              "value": "sk_test_51RSwkoRt21XMpal8PaJpf5l6bGSGtgU1bueDBUL5mJw16bv5jPegj99Yw5yAXRSqaL0n0lFoan6JA6FOUdZWKKbb00a4PHlbrS",
+              "slotSetting": true
+            },
+            {
+              "name": "PaymentServiceOptions:SecretHashKey",
+              "value": "012345678901234567890123456789AB",
+              "slotSetting": true
+            },
+            {
+              "name": "CaptchaOptions:IsEnabled",
+              "value": "false",
+              "slotSetting": true
+            }
+          ]
+
   - template: pipelines/jobs/FunctionAppDeploy.yml@devops
     parameters:
       appName: $(appName)
