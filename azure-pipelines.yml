@@ -15,6 +15,7 @@ variables:
   buildAgentVmImage: 'windows-latest'
   serviceConnection: 'niobium-store'
   resourceGroupName: 'niobium-store'
+  appName: 'niobiumstore'
 
 pool:
   vmImage: $(buildAgentVmImage)
@@ -40,7 +41,7 @@ stages:
       enabled: ${{ parameters.updateInfrastructure }}
       azureServiceConnection: $(serviceConnection)
       resourceGroupName: $(resourceGroupName)
-      appNamePrefix: 'niobiumstore'
+      appName: $(appName)
       enableKeyVault: true
       enableStagingSlot: true
       allowedOrigins: 'https://www.niobium.co.nz'
@@ -73,7 +74,6 @@ stages:
     pool:
       vmImage: $(buildAgentVmImage)
     variables:
-      functionAppName: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppName']]
       tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableFQDN']]
       keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
     steps:
@@ -82,7 +82,7 @@ stages:
       displayName: 'Update AppSettings'
       inputs:
         azureSubscription: $(serviceConnection)
-        appName: $(functionAppName)
+        appName: $(appName)
         resourceGroupName: $(resourceGroupName)
         appSettings: |
           [
@@ -115,5 +115,6 @@ stages:
       
   - template: pipelines/jobs/FunctionAppDeploy.yml@devops
     parameters:
+      appName: $(appName)
       serviceConnection: $(serviceConnection)
       resourceGroupName: $(resourceGroupName)
