@@ -15,7 +15,8 @@ variables:
   buildAgentVmImage: 'windows-latest'
   serviceConnection: 'niobium-store'
   resourceGroupName: 'niobium-store'
-  appName: 'niobiumstore'
+  appName: 'niobiumstoreFunc'
+  enableStagingSlot: true
 
 pool:
   vmImage: $(buildAgentVmImage)
@@ -43,7 +44,7 @@ stages:
       resourceGroupName: $(resourceGroupName)
       appName: $(appName)
       enableKeyVault: true
-      enableStagingSlot: true
+      enableStagingSlot: $(enableStagingSlot)
       allowedOrigins: 'https://www.niobium.co.nz'
       checkoutDevopsStep:
         checkout: devops
@@ -78,11 +79,18 @@ stages:
       keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
     steps:
     - checkout: none
+    - pwsh: Write-Output "##vso[task.setvariable variable=slotName;]production"
+      displayName: "Deploy to Production"
+      condition: eq('$(enableStagingSlot)', false)
+    - pwsh: Write-Output "##vso[task.setvariable variable=slotName;]staging"
+      displayName: "Deploy to Staging"
+      condition: eq('$(enableStagingSlot)', true)
     - task: AzureAppServiceSettings@1
       displayName: 'Update AppSettings'
       inputs:
         azureSubscription: $(serviceConnection)
         appName: $(appName)
+        slotName: $(slotName)
         resourceGroupName: $(resourceGroupName)
         appSettings: |
           [
@@ -118,3 +126,5 @@ stages:
       appName: $(appName)
       serviceConnection: $(serviceConnection)
       resourceGroupName: $(resourceGroupName)
+      enableStagingSlot: $(enableStagingSlot)
+      autoSwapSlots: true
