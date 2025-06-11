@@ -44,7 +44,7 @@ stages:
       resourceGroupName: $(resourceGroupName)
       appName: $(appName)
       enableKeyVault: true
-      enableStagingSlot: $(enableStagingSlot)
+      enableStagingSlot: ${{ variables.enableStagingSlot }}
       allowedOrigins: 'https://www.niobium.co.nz'
       checkoutDevopsStep:
         checkout: devops
@@ -81,10 +81,10 @@ stages:
     - checkout: none
     - pwsh: Write-Output "##vso[task.setvariable variable=slotName;]production"
       displayName: "Deploy to Production"
-      condition: eq('$(enableStagingSlot)', false)
+      condition: eq('${{ variables.enableStagingSlot }}', false)
     - pwsh: Write-Output "##vso[task.setvariable variable=slotName;]staging"
       displayName: "Deploy to Staging"
-      condition: eq('$(enableStagingSlot)', true)
+      condition: eq('${{ variables.enableStagingSlot }}', true)
     - task: AzureAppServiceSettings@1
       displayName: 'Update AppSettings'
       inputs:
@@ -126,5 +126,5 @@ stages:
       appName: $(appName)
       serviceConnection: $(serviceConnection)
       resourceGroupName: $(resourceGroupName)
-      enableStagingSlot: $(enableStagingSlot)
+      enableStagingSlot: ${{ variables.enableStagingSlot }}
       autoSwapSlots: true
