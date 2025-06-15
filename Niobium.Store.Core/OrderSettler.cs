@@ -6,7 +6,7 @@ namespace Niobium.Store
     internal class OrderSettler(IDomainRepository<CustomerDomain, Customer> cusomterRepo)
         : DomainEventHandler<IDomain<Transaction>, TransactionCreatedEvent>
     {
-        public override async Task HandleAsync(TransactionCreatedEvent e, CancellationToken? cancellationToken = null)
+        public override async Task HandleCoreAsync(TransactionCreatedEvent e, CancellationToken cancellationToken = default)
         {
             var customerID = e.Transaction.GetCustomer();
             var orderID = e.Transaction.GetOrder();
@@ -14,7 +14,7 @@ namespace Niobium.Store
                 Customer.BuildPartitionKey(customerID), 
                 Customer.BuildRowKey(customerID), 
                 cancellationToken: cancellationToken);
-            await customerDomain.SettleAsync(orderID, cancellationToken ?? CancellationToken.None);
+            await customerDomain.SettleAsync(orderID, cancellationToken);
         }
     }
 }

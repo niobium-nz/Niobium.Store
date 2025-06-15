@@ -5,7 +5,7 @@ namespace Niobium.Store
     internal class CustomerCreator(IDomainRepository<CustomerDomain, Customer> cusomterRepo)
         : DomainEventHandler<IDomain<Order>, OrderCreatedEvent>
     {
-        public override async Task HandleAsync(OrderCreatedEvent e, CancellationToken? cancellationToken = null)
+        public override async Task HandleCoreAsync(OrderCreatedEvent e, CancellationToken cancellationToken = default)
         {
             var customerID = e.Order.Customer;
             Customer customer = new()
@@ -39,7 +39,7 @@ namespace Niobium.Store
                 Customer.BuildPartitionKey(customerID),
                 Customer.BuildRowKey(customerID),
                 cancellationToken: cancellationToken);
-            await customerDomain.CreateCustomerIfNotExistAsync(customer, cancellationToken ?? CancellationToken.None);
+            await customerDomain.CreateCustomerIfNotExistAsync(customer, cancellationToken);
         }
     }
 }

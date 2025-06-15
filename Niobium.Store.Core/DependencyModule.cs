@@ -1,5 +1,6 @@
 using AutoMapper;
 using Cod;
+using Cod.Messaging;
 using Cod.Platform.Finance;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ namespace Niobium.Store
             builder.Services.AddDomain<ShippingOptionDomain, ShippingOption>();
             builder.Services.AddDomainEventHandler<OrderSettler, Transaction>();
             builder.Services.AddDomainEventHandler<CustomerCreator, Order>();
+            builder.Services.EnableExternalEvent<Order, OrderCreatedEvent>();
         }
     }
 }

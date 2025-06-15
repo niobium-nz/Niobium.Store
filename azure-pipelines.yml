@@ -67,6 +67,24 @@ stages:
         contributorPrincipalId: $(functionAppPrincipalId)
         allowedOrigins: 'http://localhost:7109,https://www.niobium.co.nz'
 
+  - job: Messaging
+    dependsOn: 
+      - Infrastructure
+    condition: succeeded()
+    pool:
+      vmImage: $(buildAgentVmImage)
+    variables:
+      functionAppPrincipalId: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalId']]
+    steps:
+    - checkout: devops
+    - template: pipelines/steps/newServiceBus.yml@devops
+      parameters:
+        azureServiceConnection: $(serviceConnection)
+        resourceGroupName: $(resourceGroupName)
+        serviceBusNamespaceName: 'niobiumstoresb'
+        serviceBusQueueName: 'ordercreatedevent'
+        dataOwnerPrincipalId: $(functionAppPrincipalId)
+
   - job: Configuration
     dependsOn:
       - Infrastructure
