@@ -31,6 +31,7 @@ namespace Niobium.Store
             builder.Services.AddDomain<ShippingOptionDomain, ShippingOption>();
             builder.Services.AddDomainEventHandler<OrderSettler, Transaction>();
             builder.Services.AddDomainEventHandler<CustomerCreator, Order>();
+            builder.Services.AddDomainEventHandler<ReceiptIssuer, Order>();
             builder.Services.EnableExternalEvent<Order, OrderCreatedEvent>();
         }
     }

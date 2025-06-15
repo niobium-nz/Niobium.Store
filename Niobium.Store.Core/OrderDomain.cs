@@ -37,7 +37,7 @@ namespace Niobium.Store
 
             this.Initialize(newOrder);
             await this.SaveAsync(cancellationToken: cancellationToken);
-            await this.OnEvent(new OrderCreatedEvent(newOrder), cancellationToken);
+            await this.OnEvent(new OrderCreatedEvent { Order = newOrder }, cancellationToken);
             return newOrder;
         }
 

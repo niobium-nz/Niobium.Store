@@ -95,6 +95,7 @@ stages:
     variables:
       tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableFQDN']]
       keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
+      serviceBusFQDN: $[dependencies.Messaging.outputs['newServiceBusProperties.fullyQualifiedNamespace']]
     steps:
     - checkout: none
     - pwsh: Write-Output "##vso[task.setvariable variable=slotName;]production"
@@ -114,6 +115,11 @@ stages:
             {
               "name": "StorageTableOptions:FullyQualifiedDomainName",
               "value": "$(tableFQDN)",
+              "slotSetting": false
+            },
+            {
+              "name": "ServiceBusOptions:FullyQualifiedNamespace",
+              "value": "$(serviceBusFQDN)",
               "slotSetting": false
             },
             {
@@ -159,6 +165,11 @@ stages:
             {
               "name": "CaptchaOptions:IsEnabled",
               "value": "false",
+              "slotSetting": true
+            },
+            {
+              "name": "AzureWebJobs.IssueReceipt.Disabled",
+              "value": "true",
               "slotSetting": true
             }
           ]

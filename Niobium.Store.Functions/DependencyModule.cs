@@ -2,6 +2,7 @@ using Cod.Database.StorageTable;
 using Cod.Platform.Captcha.ReCaptcha;
 using Cod.Platform.Finance;
 using Cod.Platform.Finance.Stripe;
+using Cod.Platform.ServiceBus;
 using Cod.Platform.StorageTable;
 using Cod.Table.StorageAccount;
 using Microsoft.Azure.Functions.Worker.Builder;
@@ -25,6 +26,7 @@ namespace Niobium.Store.Functions
             builder.AddCore();
             builder.AddFinance();
             builder.AddDatabase();
+            builder.AddMessaging();
             builder.AddCaptcha();
 
             builder.Services.AddTransient(typeof(CloudTableRepository<>));

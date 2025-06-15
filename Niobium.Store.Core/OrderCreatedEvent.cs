@@ -2,8 +2,14 @@ using Cod.Messaging;
 
 namespace Niobium.Store
 {
-    public class OrderCreatedEvent(Order newOrder) : DomainEvent
+    public class OrderCreatedEvent : DomainEvent
     {
-        public Order Order { get; } = newOrder;
+        public OrderCreatedEvent()
+        {
+            this.Source = Cod.DomainEventAudience.Internal;
+            this.Target = Cod.DomainEventAudience.External;
+        }
+
+        public Order Order { get; set; }
     }
 }
