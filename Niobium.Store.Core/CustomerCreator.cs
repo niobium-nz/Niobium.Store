@@ -5,6 +5,8 @@ namespace Niobium.Store
     internal class CustomerCreator(IDomainRepository<CustomerDomain, Customer> cusomterRepo)
         : DomainEventHandler<IDomain<Order>, OrderCreatedEvent>
     {
+        protected override DomainEventAudience EventSource => DomainEventAudience.External;
+
         public override async Task HandleCoreAsync(OrderCreatedEvent e, CancellationToken cancellationToken = default)
         {
             var customerID = e.Order.Customer;

@@ -6,11 +6,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Niobium.Store.Functions
 {
-    internal class IssueReceipt(
+    internal class OrderCreated(
         IExternalEventAdaptor<Order, OrderCreatedEvent> adaptor,
-        ILogger<IssueReceipt> logger)
+        ILogger<OrderCreated> logger)
     {
-        [Function(nameof(IssueReceipt))]
+        [Function(nameof(OrderCreated))]
         public async Task Run(
             [ServiceBusTrigger("ordercreatedevent", AutoCompleteMessages = true, Connection = nameof(ServiceBusOptions))]
             ServiceBusReceivedMessage message,
