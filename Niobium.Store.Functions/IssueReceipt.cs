@@ -22,7 +22,7 @@ namespace Niobium.Store.Functions
                 return;
             }
 
-            await adaptor.OnEvent(request, cancellationToken);
+            await adaptor.OnEvent(request.Value, cancellationToken);
         }
     }
 }
