@@ -82,7 +82,7 @@ stages:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
         serviceBusNamespaceName: 'niobiumstoresb'
-        serviceBusQueueName: 'ordercreatedevent'
+        serviceBusQueueName: 'orderupdatedevent'
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: Configuration

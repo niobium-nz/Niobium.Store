@@ -30,5 +30,6 @@
   <ItemGroup>
     <PackageReference Include="Cod.Abstractions" Version="2.2.71" />
     <PackageReference Include="Cod.Helper" Version="2.2.71" />
+    <PackageReference Include="Cod.Messaging" Version="2.2.71" />
   </ItemGroup>
 </Project>

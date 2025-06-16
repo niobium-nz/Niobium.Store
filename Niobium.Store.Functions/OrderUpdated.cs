@@ -6,17 +6,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Niobium.Store.Functions
 {
-    internal class OrderCreated(
-        IExternalEventAdaptor<Order, OrderCreatedEvent> adaptor,
-        ILogger<OrderCreated> logger)
+    internal class OrderUpdated(
+        IExternalEventAdaptor<Order, OrderUpdatedEvent> adaptor,
+        ILogger<OrderUpdated> logger)
     {
-        [Function(nameof(OrderCreated))]
+        [Function(nameof(OrderUpdated))]
         public async Task Run(
-            [ServiceBusTrigger("ordercreatedevent", AutoCompleteMessages = true, Connection = nameof(ServiceBusOptions))]
+            [ServiceBusTrigger("orderupdatedevent", AutoCompleteMessages = true, Connection = nameof(ServiceBusOptions))]
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken)
         {
-            if (!message.TryParse<OrderCreatedEvent>(out var request))
+            if (!message.TryParse<OrderUpdatedEvent>(out var request))
             {
                 logger.LogError("Failed to parse message: {MessageId}", message.MessageId);
                 return;

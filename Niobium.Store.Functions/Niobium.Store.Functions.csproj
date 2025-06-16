@@ -34,7 +34,6 @@
     <PackageReference Include="Cod.Platform.Finance.Stripe" Version="2.2.71" />
     <PackageReference Include="Cod.Platform.StorageTable" Version="2.2.71" />
     <PackageReference Include="Cod.Platform.ServiceBus" Version="2.2.71" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.16.6" />
   </ItemGroup>
 
   <ItemGroup>

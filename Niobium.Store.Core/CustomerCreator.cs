@@ -3,12 +3,17 @@ using Cod;
 namespace Niobium.Store
 {
     internal class CustomerCreator(IDomainRepository<CustomerDomain, Customer> cusomterRepo)
-        : DomainEventHandler<IDomain<Order>, OrderCreatedEvent>
+        : DomainEventHandler<IDomain<Order>, OrderUpdatedEvent>
     {
         protected override DomainEventAudience EventSource => DomainEventAudience.External;
 
-        public override async Task HandleCoreAsync(OrderCreatedEvent e, CancellationToken cancellationToken = default)
+        public override async Task HandleCoreAsync(OrderUpdatedEvent e, CancellationToken cancellationToken = default)
         {
+            if (e.Order.Status != (int)OrderStatus.Created)
+            {
+                return;
+            }
+
             var customerID = e.Order.Customer;
             Customer customer = new()
             {
