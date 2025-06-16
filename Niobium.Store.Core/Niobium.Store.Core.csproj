@@ -29,8 +29,8 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
-    <PackageReference Include="Cod.Platform.Finance" Version="2.2.69" />
-    <PackageReference Include="Cod.Messaging" Version="2.2.69" />
+    <PackageReference Include="Cod.Platform.Finance" Version="2.2.70" />
+    <PackageReference Include="Cod.Messaging" Version="2.2.70" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
   </ItemGroup>
 

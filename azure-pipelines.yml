@@ -89,6 +89,7 @@ stages:
     dependsOn:
       - Infrastructure
       - Table
+      - Messaging
     condition: succeeded()
     pool:
       vmImage: $(buildAgentVmImage)
