@@ -82,7 +82,7 @@ stages:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
         serviceBusNamespaceName: 'niobiumstoresb'
-        serviceBusQueueName: 'orderupdatedevent'
+        serviceBusQueueName: 'entitychangedevent-order'
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: Configuration
@@ -169,7 +169,7 @@ stages:
               "slotSetting": true
             },
             {
-              "name": "AzureWebJobs.IssueReceipt.Disabled",
+              "name": "AzureWebJobs.OrderChanged.Disabled",
               "value": "true",
               "slotSetting": true
             }

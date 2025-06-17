@@ -10,7 +10,7 @@ namespace Niobium.Store
     public static class DependencyModule
     {
         private static volatile bool loaded;
-        private static MapperConfiguration mapperConfiguration = new(cfg =>
+        private static readonly MapperConfiguration mapperConfiguration = new(cfg =>
         {
             cfg.CreateMap<Order, OrderResponse>();
         });
@@ -32,7 +32,7 @@ namespace Niobium.Store
             builder.Services.AddDomainEventHandler<OrderSettler, Transaction>();
             builder.Services.AddDomainEventHandler<CustomerCreator, Order>();
             builder.Services.AddDomainEventHandler<ReceiptIssuer, Order>();
-            builder.Services.EnableExternalEvent<Order, OrderUpdatedEvent>();
+            builder.Services.EnableExternalEvent<Order, EntityChangedEvent<Order>>();
         }
     }
 }

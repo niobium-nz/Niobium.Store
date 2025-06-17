@@ -37,7 +37,6 @@ namespace Niobium.Store
 
             this.Initialize(newOrder);
             await this.SaveAsync(cancellationToken: cancellationToken);
-            await this.OnEvent(new OrderUpdatedEvent { Order = newOrder }, cancellationToken);
             return newOrder;
         }
 
@@ -93,7 +92,6 @@ namespace Niobium.Store
             }
 
             await this.SaveAsync(cancellationToken: cancellationToken);
-            await this.OnEvent(new OrderUpdatedEvent { Order = entity }, cancellationToken);
             return entity.Paid >= entity.GrandTotal;
         }
 

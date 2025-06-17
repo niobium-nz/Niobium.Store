@@ -3,43 +3,43 @@ using Cod;
 namespace Niobium.Store
 {
     internal class CustomerCreator(IDomainRepository<CustomerDomain, Customer> cusomterRepo)
-        : DomainEventHandler<IDomain<Order>, OrderUpdatedEvent>
+        : DomainEventHandler<IDomain<Order>, EntityChangedEvent<Order>>
     {
         protected override DomainEventAudience EventSource => DomainEventAudience.External;
 
-        public override async Task HandleCoreAsync(OrderUpdatedEvent e, CancellationToken cancellationToken = default)
+        public override async Task HandleCoreAsync(EntityChangedEvent<Order> e, CancellationToken cancellationToken = default)
         {
-            if (e.Order.Status != (int)OrderStatus.Created)
+            if (e.OldEntity != null || e.NewEntity == null || e.NewEntity.Status != (int)OrderStatus.Created)
             {
                 return;
             }
 
-            var customerID = e.Order.Customer;
+            var customerID = e.NewEntity.Customer;
             Customer customer = new()
             {
-                BillingAddressLine1 = e.Order.BillingAddressLine1,
-                BillingAddressLine2 = e.Order.BillingAddressLine2,
-                BillingCity = e.Order.BillingCity,
-                BillingCountry = e.Order.BillingCountry,
-                BillingName = e.Order.BillingName,
-                BillingBusiness = e.Order.BillingBusiness,
-                BillingPostcode = e.Order.BillingPostcode,
-                BillingState = e.Order.BillingState,
-                Consignee = e.Order.Consignee,
-                Culture = e.Order.Culture,
-                Currency = e.Order.Currency,
-                Email = e.Order.Email,
+                BillingAddressLine1 = e.NewEntity.BillingAddressLine1,
+                BillingAddressLine2 = e.NewEntity.BillingAddressLine2,
+                BillingCity = e.NewEntity.BillingCity,
+                BillingCountry = e.NewEntity.BillingCountry,
+                BillingName = e.NewEntity.BillingName,
+                BillingBusiness = e.NewEntity.BillingBusiness,
+                BillingPostcode = e.NewEntity.BillingPostcode,
+                BillingState = e.NewEntity.BillingState,
+                Consignee = e.NewEntity.Consignee,
+                Culture = e.NewEntity.Culture,
+                Currency = e.NewEntity.Currency,
+                Email = e.NewEntity.Email,
                 ID = customerID,
                 Prefix = Customer.BuildPartitionKey(customerID),
-                ShippingAddressLine1 = e.Order.ShippingAddressLine1,
-                ShippingAddressLine2 = e.Order.ShippingAddressLine2,
-                ShippingCity = e.Order.ShippingCity,
-                ShippingCountry = e.Order.ShippingCountry,
-                ShippingPostcode = e.Order.ShippingPostcode,
-                ShippingState = e.Order.ShippingState,
-                ShippingSuburb = e.Order.ShippingSuburb,
-                TimeZone = e.Order.TimeZone,
-                Phone = e.Order.Phone,
+                ShippingAddressLine1 = e.NewEntity.ShippingAddressLine1,
+                ShippingAddressLine2 = e.NewEntity.ShippingAddressLine2,
+                ShippingCity = e.NewEntity.ShippingCity,
+                ShippingCountry = e.NewEntity.ShippingCountry,
+                ShippingPostcode = e.NewEntity.ShippingPostcode,
+                ShippingState = e.NewEntity.ShippingState,
+                ShippingSuburb = e.NewEntity.ShippingSuburb,
+                TimeZone = e.NewEntity.TimeZone,
+                Phone = e.NewEntity.Phone,
             };
 
             var customerDomain = await cusomterRepo.GetAsync(
