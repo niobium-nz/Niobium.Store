@@ -6,5 +6,7 @@ namespace Niobium.Store
     public class OrderResponse() : Order
     {
         public required long Order { get; set; }
+
+        public required string Instruction { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using AutoMapper;
 using Cod;
 using Cod.Platform;
 using Cod.Platform.Captcha.ReCaptcha;
@@ -11,18 +10,17 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Niobium.Store.Functions;
 
-public class MakeOrder(
+public class GetQuote(
     Func<OrderDomain> domainFactory,
     IVisitorRiskAssessor assessor,
-    IMapper mapper,
-    ILogger<MakeOrder> logger)
+    ILogger<GetQuote> logger)
 {
     private static readonly JsonSerializerOptions serializationOptions = new(JsonSerializerDefaults.Web);
 
-    [Function(nameof(MakeOrder))]
-    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "orders")] HttpRequest req, CancellationToken cancellationToken)
+    [Function(nameof(GetQuote))]
+    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "quote")] HttpRequest req, CancellationToken cancellationToken)
     {
-        var request = await JsonSerializer.DeserializeAsync<OrderRequest>(req.Body, options: serializationOptions, cancellationToken: cancellationToken);
+        var request = await JsonSerializer.DeserializeAsync<QuoteRequest>(req.Body, options: serializationOptions, cancellationToken: cancellationToken);
         if (request == null)
         {
             return new BadRequestResult();
@@ -41,19 +39,7 @@ public class MakeOrder(
             return risk;
         }
 
-        var clientIP = req.GetRemoteIP();
-        var domain = domainFactory();
-        var order = await domain.TakeNew(request, clientIP, cancellationToken);
-        var response = mapper.Map<OrderResponse>(order);
-        response.Order = order.GetID();
-
-        var charge = await domain.CreateChargeAsync(req.Headers.Origin, clientIP, cancellationToken);
-        if (charge == null || charge.Instruction == null)
-        {
-            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
-        }
-
-        response.Instruction = charge.Instruction.ToString()!;
-        return new OkObjectResult(response);
+        var quote = await domainFactory().QuoteAsync(request, cancellationToken);
+        return new OkObjectResult(quote);
     }
 }

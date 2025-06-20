@@ -1,5 +1,6 @@
 using AutoMapper;
 using Cod;
+using Cod.Finance;
 using Cod.Messaging;
 using Cod.Platform.Finance;
 using Microsoft.Azure.Functions.Worker;

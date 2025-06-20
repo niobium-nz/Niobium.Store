@@ -1,4 +1,5 @@
 using Cod;
+using Cod.Finance;
 using Cod.Platform.Finance;
 using Microsoft.Extensions.Logging;
 
@@ -9,31 +10,52 @@ namespace Niobium.Store
         IEnumerable<IDomainEventHandler<IDomain<Order>>> eventHandlers,
         IDomainRepository<ShippingOptionDomain, ShippingOption> shippingRepo,
         IRepository<Listing> listingRepo,
+        Lazy<IPaymentService> paymentService,
         ILogger<OrderDomain> logger)
         : GenericDomain<Order>(repository, eventHandlers)
     {
-        public async Task<Order> TakeNew(OrderRequest request, string? clientIP, CancellationToken cancellationToken = default)
+        public async Task<QuoteResponse> QuoteAsync(QuoteRequest request, CancellationToken cancellationToken = default)
         {
-            var shippingDomain = await this.GetShippingOption(request, cancellationToken);
+            var shippingDomain = await this.GetShippingOption(request.Shipping, cancellationToken);
             var country = await shippingDomain.FigureCountryAsync(request.ShippingCountry, cancellationToken);
-            var listings = await this.GetListingsAsync(request, cancellationToken);
+            var listings = await this.GetListingsAsync(request.Cart, cancellationToken);
             var shippingEntity = await shippingDomain.GetEntityAsync(cancellationToken);
             var currency = this.FigureCurrency(shippingEntity, listings);
             var (taxRate, taxKind) = this.FigureTaxInfo(listings);
+            var quote = new QuoteResponse(request)
+            {
+                Discount = new Amount { Cents = 0, Currency = currency }, // Assuming no discount for simplicity, can be modified to apply discounts if needed.
+                SubTotal = new Amount { Cents = listings.Sum(x => x.Price), Currency = currency },
+                ShippingCost = new Amount { Cents = shippingEntity.Price, Currency = currency },
+                TaxRate = taxRate,
+                TaxKind = taxKind,
+            };
+            long taxableAmount = quote.SubTotal.Cents + quote.ShippingCost.Cents - quote.Discount.Cents;
+            quote.Tax = new Amount { Cents = taxableAmount * taxRate / 10000, Currency = currency };
+            quote.GrandTotal = new Amount { Cents = taxableAmount + quote.Tax.Cents, Currency = currency };
+            return quote;
+        }
 
+        public async Task<Order> TakeNew(OrderRequest request, string? clientIP, CancellationToken cancellationToken = default)
+        {
+            var quote = await this.QuoteAsync(request, cancellationToken);
             var newOrder = CreateNewOrder(request);
-            newOrder.Items = string.Join(Order.GetItemsSplitor(), [.. listings.Select(l => l.GetFullID())]);
-            newOrder.ShippingCost = shippingEntity.Price;
-            newOrder.TaxKind = taxKind;
-            newOrder.TaxRate = taxRate;
+            newOrder.ShippingCost = quote.ShippingCost.Cents;
+            newOrder.TaxKind = quote.TaxKind;
+            newOrder.TaxRate = quote.TaxRate;
             newOrder.IP = clientIP;
             newOrder.Paid = 0;
-            newOrder.Currency = currency;
-            newOrder.Discount = 0; // Assuming no discount for simplicity, can be modified to apply discounts if needed.
-            newOrder.SubTotal = listings.Sum(x => x.Price);
-            var taxableAmount = newOrder.SubTotal + newOrder.ShippingCost - newOrder.Discount;
-            newOrder.Tax = (long)(taxableAmount * (taxRate / 10000m));
-            newOrder.GrandTotal = taxableAmount + newOrder.Tax;
+            newOrder.Currency = quote.GrandTotal.Currency;
+            newOrder.Discount = quote.Discount.Cents;
+            newOrder.SubTotal = quote.SubTotal.Cents;
+            newOrder.Tax = quote.Tax.Cents;
+            newOrder.GrandTotal = quote.GrandTotal.Cents;
+
+            var listingIDs = request.Cart
+                .Select(x => new StorageKey { PartitionKey = Listing.BuildPartitionKey(x.Listing), RowKey = Listing.BuildRowKey(x.Option) })
+                .Select(x => x.BuildFullID())
+                .ToList();
+            newOrder.Items = string.Join(Order.GetItemsSplitor(), listingIDs);
 
             this.Initialize(newOrder);
             await this.SaveAsync(cancellationToken: cancellationToken);
@@ -95,6 +117,38 @@ namespace Niobium.Store
             return entity.Paid >= entity.GrandTotal;
         }
 
+        public async Task<ChargeResponse?> CreateChargeAsync(string? source = null, string? clientIP = null, CancellationToken cancellationToken = default)
+        {
+            var entity = await this.GetEntityAsync(cancellationToken);
+            var chargeRequest = new ChargeRequest
+            {
+                TargetKind = ChargeTargetKind.User,
+                Target = entity.Customer.ToString(),
+                Channel = PaymentChannels.Cards,
+                Operation = PaymentOperationKind.Charge,
+                Source = source,
+                Order = entity.GetID().ToString(),
+                Amount = entity.GrandTotal,
+                Currency = entity.Currency,
+                IP = clientIP,
+            };
+
+            var charge = await paymentService.Value.ChargeAsync(chargeRequest);
+            if (!charge.IsSuccess)
+            {
+                logger.LogError($"Failed to process charge for order {entity.GetFullID()}: {charge.Message}");
+                return null;
+            }
+
+            if (charge.Result.Instruction == null)
+            {
+                logger.LogError($"Failed to get payment instruction for order {entity.GetFullID()}: {charge.Message}");
+                return null;
+            }
+
+            return charge.Result;
+        }
+
         private (long taxRate, string? taxKind) FigureTaxInfo(List<Listing> listings)
         {
             var taxKinds = listings.Where(x => x.TaxKind != null).Select(x => x.TaxKind).Distinct().ToList();
@@ -136,12 +190,12 @@ namespace Niobium.Store
             return currency;
         }
 
-        private async Task<ShippingOptionDomain> GetShippingOption(OrderRequest request, CancellationToken cancellationToken)
+        private async Task<ShippingOptionDomain> GetShippingOption(int shippingID, CancellationToken cancellationToken)
         {
-            var shippingOption = await shippingRepo.GetAsync(ShippingOption.BuildPartitionKey(), ShippingOption.BuildRowKey(request.Shipping), cancellationToken: cancellationToken);
+            var shippingOption = await shippingRepo.GetAsync(ShippingOption.BuildPartitionKey(), ShippingOption.BuildRowKey(shippingID), cancellationToken: cancellationToken);
             if (shippingOption is null)
             {
-                var error = $"Invalid shipping option: {request.Shipping}";
+                var error = $"Invalid shipping option: {shippingID}";
                 logger.LogWarning(error);
                 throw new Cod.ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
@@ -149,10 +203,10 @@ namespace Niobium.Store
             return shippingOption;
         }
 
-        private async Task<List<Listing>> GetListingsAsync(OrderRequest request, CancellationToken cancellationToken)
+        private async Task<List<Listing>> GetListingsAsync(List<CartItem> cart, CancellationToken cancellationToken)
         {
             List<Listing> listings = [];
-            foreach (var item in request.Cart)
+            foreach (var item in cart)
             {
                 var listing = await listingRepo.RetrieveAsync(Listing.BuildPartitionKey(item.Listing), Listing.BuildRowKey(item.Option), cancellationToken: cancellationToken);
                 if (listing is null)

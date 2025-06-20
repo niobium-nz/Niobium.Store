@@ -4,24 +4,10 @@ using Cod;
 
 namespace Niobium.Store
 {
-    public class OrderRequest : IUserInput, IValidatableObject
+    public class OrderRequest : QuoteRequest, IUserInput, IValidatableObject
     {
         [Required]
-        public required Guid ID { get; set; }
-
-        [Required]
         public required long Timestamp { get; set; }
-
-        [Required]
-        public required List<CartItem> Cart { get; set; } = [];
-
-        [Required]
-        [MaxLength(5000)]
-        public required string Captcha { get; set; }
-
-        [Required]
-        [Range(1, 9999)]
-        public int Shipping { get; set; }
 
         [StringLength(20)]
         public string? Coupon { get; set; }
@@ -61,9 +47,6 @@ namespace Niobium.Store
         [StringLength(20)]
         public string? ShippingState { get; set; }
 
-        [StringLength(20)]
-        public required string ShippingCountry { get; set; }
-
         [StringLength(10)]
         public required string ShippingPostcode { get; set; }
 
@@ -94,16 +77,12 @@ namespace Niobium.Store
         [StringLength(10)]
         public required string BillingPostcode { get; set; }
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (!Country.TryParse(ShippingCountry, out _))
+            var baseResults = base.Validate(validationContext);
+            foreach (var baseResult in baseResults)
             {
-                yield return new ValidationResult($"Invalid country code: {ShippingCountry}", [nameof(ShippingCountry)]);
-            }
-
-            if (Cart.Count == 0)
-            {
-                yield return new ValidationResult($"No valid listings found from the order: {ID}", [nameof(Cart)]);
+                yield return baseResult;
             }
 
             if (Timestamp <= 0 || DateTimeOffset.UtcNow - DateTimeOffsetExtensions.FromReverseUnixTimeMilliseconds(Timestamp) > TimeSpan.FromMinutes(20))
@@ -112,15 +91,16 @@ namespace Niobium.Store
             }
         }
 
-        public void Sanitize()
+        public override void Sanitize()
         {
+            base.Sanitize();
+
             if (!CultureInfoExtensions.TryParseCultureInfo(Culture, out var culture))
             {
                 culture = new CultureInfo("en-US");
             }
 
             Culture = culture.Name;
-            Captcha = Captcha.Trim();
             Coupon = Coupon?.Trim().ToUpperInvariant();
             Notes = Notes?.Trim();
             Consignee = culture.ToTitleCase(Consignee.Trim());
@@ -173,12 +153,7 @@ namespace Niobium.Store
             BillingPostcode = BillingPostcode.Trim();
             Email = Email.Trim().ToLowerInvariant();
 
-            if (Country.TryParse(ShippingCountry, out var country))
-            {
-                ShippingCountry = country.Alpha2;
-            }
-
-            if (Country.TryParse(BillingCountry, out country))
+            if (Country.TryParse(BillingCountry, out var country))
             {
                 BillingCountry = country.Alpha2;
             }
