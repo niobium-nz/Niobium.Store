@@ -7,13 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Niobium.Store.Functions
 {
-    internal class OrderChanged(
+    internal class OrderCreatedEventConsumer(
         IExternalEventAdaptor<Order, EntityChangedEvent<Order>> adaptor,
-        ILogger<OrderChanged> logger)
+        ILogger<OrderCreatedEventConsumer> logger)
     {
-        [Function(nameof(OrderChanged))]
+        [Function(nameof(OrderCreatedEventConsumer))]
         public async Task Run(
-            [ServiceBusTrigger("ordercreated", AutoCompleteMessages = true, Connection = nameof(ServiceBusOptions))]
+            [ServiceBusTrigger("ordercreatedevent", AutoCompleteMessages = true, Connection = nameof(ServiceBusOptions))]
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken)
         {

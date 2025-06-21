@@ -16,6 +16,10 @@ variables:
   serviceConnection: 'niobium-store'
   resourceGroupName: 'niobium-store'
   appName: 'niobiumstoreFunc'
+  serviceBusNamespace: 'niobiumstoresb'
+  orderCreateEventQueueName: 'ordercreatedevent'
+  subscriptionServiceBusResourceGroup: 'niobium-emailnotification'
+  subscriptionServiceBusNamespace: 'niobiumemailsb'
   enableStagingSlot: true
 
 pool:
@@ -81,8 +85,8 @@ stages:
       parameters:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
-        serviceBusNamespaceName: 'niobiumstoresb'
-        serviceBusQueueNames: ['ordercreated']
+        serviceBusNamespaceName: $(serviceBusNamespace)
+        serviceBusQueueNames: [$(orderCreateEventQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: Subscription
@@ -98,8 +102,8 @@ stages:
     - template: pipelines/steps/grantPermissionServiceBus.yml@devops
       parameters:
         azureServiceConnection: $(serviceConnection)
-        resourceGroupName: 'niobium-emailnotification'
-        serviceBusNamespaceName: 'niobiumemailsb'
+        resourceGroupName: $(subscriptionServiceBusResourceGroup)
+        serviceBusNamespaceName: $(subscriptionServiceBusNamespace)
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: Configuration
@@ -193,7 +197,7 @@ stages:
               "slotSetting": true
             },
             {
-              "name": "AzureWebJobs.OrderChanged.Disabled",
+              "name": "AzureWebJobs.OrderCreatedEventConsumer.Disabled",
               "value": "true",
               "slotSetting": true
             }

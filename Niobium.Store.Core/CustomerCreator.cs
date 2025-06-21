@@ -5,8 +5,6 @@ namespace Niobium.Store
     internal class CustomerCreator(IDomainRepository<CustomerDomain, Customer> cusomterRepo)
         : DomainEventHandler<IDomain<Order>, EntityChangedEvent<Order>>
     {
-        protected override DomainEventAudience EventSource => DomainEventAudience.External;
-
         public override async Task HandleCoreAsync(EntityChangedEvent<Order> e, CancellationToken cancellationToken = default)
         {
             if (e.OldEntity != null || e.NewEntity == null || e.NewEntity.Status != (int)OrderStatus.Created)
