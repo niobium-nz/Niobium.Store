@@ -23,11 +23,11 @@ namespace Niobium.Store.Functions
 
             loaded = true;
 
-            builder.AddCore();
             builder.AddFinance();
             builder.AddDatabase();
             builder.AddMessaging();
             builder.AddCaptcha();
+            builder.AddCore();
 
             builder.Services.AddTransient(typeof(CloudTableRepository<>));
             builder.Services.AddMemoryCachedRepository<Listing>();

@@ -1,6 +1,5 @@
 using Cod;
 using Cod.Finance;
-using Cod.Platform.Finance;
 
 namespace Niobium.Store
 {
@@ -12,8 +11,8 @@ namespace Niobium.Store
             var customerID = e.Transaction.GetCustomer();
             var orderID = e.Transaction.GetOrder();
             var customerDomain = await cusomterRepo.GetAsync(
-                Customer.BuildPartitionKey(customerID), 
-                Customer.BuildRowKey(customerID), 
+                Customer.BuildPartitionKey(customerID),
+                Customer.BuildRowKey(customerID),
                 cancellationToken: cancellationToken);
             await customerDomain.SettleAsync(orderID, cancellationToken);
         }

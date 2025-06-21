@@ -31,8 +31,8 @@ namespace Niobium.Store
             }
 
             var result = await this.Repository.CreateAsync(customer, cancellationToken: cancellationToken);
-            await this.InitializeBalanceAsync(cancellationToken); 
-            await this.InitializeDeltaAsync(cancellationToken); 
+            await this.InitializeBalanceAsync(cancellationToken);
+            await this.InitializeDeltaAsync(cancellationToken);
 
             return result;
         }

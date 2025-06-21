@@ -17,13 +17,13 @@ namespace Niobium.Store.Functions
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken)
         {
-            if (!message.TryParse<EntityChangedEvent<Order>>(out var request))
+            if (!message.TryParse(out EntityChangedEvent<Order>? evt, out var rawBody))
             {
-                logger.LogError("Failed to parse message: {MessageId}", message.MessageId);
+                logger.LogError($"Failed to parse message {message.MessageId}: {rawBody}");
                 return;
             }
 
-            await adaptor.OnEvent(request.Value, cancellationToken);
+            await adaptor.OnEvent(evt, cancellationToken);
         }
     }
 }
