@@ -13,7 +13,7 @@ namespace Niobium.Store.Functions
     {
         [Function(nameof(OrderChanged))]
         public async Task Run(
-            [ServiceBusTrigger("entitychangedevent-order", AutoCompleteMessages = true, Connection = nameof(ServiceBusOptions))]
+            [ServiceBusTrigger("ordercreated", AutoCompleteMessages = true, Connection = nameof(ServiceBusOptions))]
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken)
         {
