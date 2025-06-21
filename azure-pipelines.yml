@@ -98,7 +98,7 @@ stages:
     - template: pipelines/steps/grantPermissionServiceBus.yml@devops
       parameters:
         azureServiceConnection: $(serviceConnection)
-        resourceGroupName: $(resourceGroupName)
+        resourceGroupName: 'niobium-emailnotification'
         serviceBusNamespaceName: 'niobiumemailsb'
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 

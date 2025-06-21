@@ -11,6 +11,9 @@ namespace Niobium.Store
         [Required]
         public required List<CartItem> Cart { get; set; } = [];
 
+        [StringLength(20)]
+        public string? Coupon { get; set; }
+
         [Required]
         [MaxLength(5000)]
         public required string Captcha { get; set; }
@@ -37,6 +40,7 @@ namespace Niobium.Store
 
         public virtual void Sanitize()
         {
+            Coupon = Coupon?.Trim().ToUpperInvariant();
             Captcha = Captcha.Trim();
             if (Country.TryParse(ShippingCountry, out var country))
             {

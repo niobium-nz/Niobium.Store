@@ -9,9 +9,6 @@ namespace Niobium.Store
         [Required]
         public required long Timestamp { get; set; }
 
-        [StringLength(20)]
-        public string? Coupon { get; set; }
-
         [StringLength(100)]
         public string? Notes { get; set; }
 
@@ -101,7 +98,6 @@ namespace Niobium.Store
             }
 
             Culture = culture.Name;
-            Coupon = Coupon?.Trim().ToUpperInvariant();
             Notes = Notes?.Trim();
             Consignee = culture.ToTitleCase(Consignee.Trim());
 
