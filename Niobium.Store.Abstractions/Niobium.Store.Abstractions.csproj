@@ -28,9 +28,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cod.Abstractions" Version="2.2.82" />
-    <PackageReference Include="Cod.Helper" Version="2.2.82" />
-    <PackageReference Include="Cod.Messaging" Version="2.2.82" />
-    <PackageReference Include="Cod.Finance" Version="2.2.82" />
+    <PackageReference Include="Cod.Abstractions" Version="2.2.85" />
+    <PackageReference Include="Cod.Helper" Version="2.2.85" />
+    <PackageReference Include="Cod.Messaging" Version="2.2.85" />
+    <PackageReference Include="Cod.Finance" Version="2.2.85" />
   </ItemGroup>
 </Project>

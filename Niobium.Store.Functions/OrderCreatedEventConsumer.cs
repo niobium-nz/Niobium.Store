@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Niobium.Store.Functions
 {
     internal class OrderCreatedEventConsumer(
-        IExternalEventAdaptor<Order, EntityChangedEvent<Order>> adaptor,
+        IExternalEventAdaptor<Order, OrderCreatedEvent> adaptor,
         ILogger<OrderCreatedEventConsumer> logger)
     {
         [Function(nameof(OrderCreatedEventConsumer))]
@@ -17,7 +17,7 @@ namespace Niobium.Store.Functions
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken)
         {
-            if (!message.TryParse(out EntityChangedEvent<Order>? evt, out var rawBody))
+            if (!message.TryParse(out OrderCreatedEvent? evt, out var rawBody))
             {
                 logger.LogError($"Failed to parse message {message.MessageId}: {rawBody}");
                 return;

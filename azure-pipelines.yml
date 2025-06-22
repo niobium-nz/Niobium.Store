@@ -160,16 +160,6 @@ stages:
               "name": "PaymentServiceOptions:SecretHashKey",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/HASH-SECRET/)",
               "slotSetting": true
-            },
-            {
-              "name": "CaptchaOptions:Secrets:www.niobium.co.nz",
-              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/RECAPTCHA-SECRET-WWW-NIOBIUM-CO-NZ/)",
-              "slotSetting": true
-            },
-            {
-              "name": "CaptchaOptions:Secrets:www.zaps.co.nz",
-              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/RECAPTCHA-SECRET-WWW-ZAPS-CO-NZ/)",
-              "slotSetting": true
             }
           ]
     - task: AzureAppServiceSettings@1
@@ -192,8 +182,8 @@ stages:
               "slotSetting": true
             },
             {
-              "name": "CaptchaOptions:IsEnabled",
-              "value": "false",
+              "name": "CaptchaOptions:IsDisabled",
+              "value": "true",
               "slotSetting": true
             },
             {
