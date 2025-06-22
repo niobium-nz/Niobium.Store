@@ -10,8 +10,9 @@ namespace Niobium.Store
         {
             var customerID = e.Transaction.GetCustomer();
             var orderID = e.Transaction.GetOrder();
+            var tenant = e.Transaction.GetTenant();
             var customerDomain = await cusomterRepo.GetAsync(
-                Customer.BuildPartitionKey(customerID),
+                Customer.BuildPartitionKey(tenant),
                 Customer.BuildRowKey(customerID),
                 cancellationToken: cancellationToken);
             await customerDomain.SettleAsync(orderID, cancellationToken);

@@ -40,6 +40,8 @@ namespace Niobium.Store
 
         public string? Notes { get; set; }
 
+        public required string Tenant { get; set; }
+
         public required string Items { get; set; }
 
         public required string Currency { get; set; }

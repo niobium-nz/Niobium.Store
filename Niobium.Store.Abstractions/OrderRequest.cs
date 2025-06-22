@@ -74,6 +74,9 @@ namespace Niobium.Store
         [StringLength(10)]
         public required string BillingPostcode { get; set; }
 
+        [StringLength(20)]
+        public required string Tenant { get; set; }
+
         public bool MarketingSubscription { get; set; }
 
         public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

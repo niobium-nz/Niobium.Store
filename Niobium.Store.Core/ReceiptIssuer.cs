@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Niobium.Store
 {
-    internal class ReceiptIssuer(ILogger<ReceiptIssuer> logger) : DomainEventHandler<IDomain<Order>, OrderCreatedEvent>
+    internal class ReceiptIssuer(ILogger<ReceiptIssuer> logger) : DomainEventHandler<OrderDomain, OrderCreatedEvent>
     {
         protected override DomainEventAudience EventSource => DomainEventAudience.External;
 

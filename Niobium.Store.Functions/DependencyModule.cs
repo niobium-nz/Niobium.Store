@@ -1,4 +1,5 @@
 using Cod.Database.StorageTable;
+using Cod.Messaging.ServiceBus;
 using Cod.Platform.Captcha.ReCaptcha;
 using Cod.Platform.Finance;
 using Cod.Platform.Finance.Stripe;
@@ -7,6 +8,7 @@ using Cod.Platform.StorageTable;
 using Cod.Table.StorageAccount;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Niobium.Notification;
 
 namespace Niobium.Store.Functions
 {
@@ -32,6 +34,7 @@ namespace Niobium.Store.Functions
             builder.Services.AddTransient(typeof(CloudTableRepository<>));
             builder.Services.AddMemoryCachedRepository<Listing>();
             builder.Services.AddMemoryCachedRepository<ShippingOption>();
+            builder.Services.AddMessagingBroker<SubscribeCommand>();
         }
     }
 }

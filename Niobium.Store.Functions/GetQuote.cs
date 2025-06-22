@@ -33,7 +33,7 @@ public class GetQuote(
             return validationState.MakeResponse();
         }
 
-        var risk = await req.AssessRiskAsync(assessor, request.ID, request.Captcha, logger, cancellationToken);
+        var risk = await req.AssessRiskAsync(assessor, request.ID.ToString(), request.Captcha, logger, cancellationToken);
         if (risk != null)
         {
             return risk;

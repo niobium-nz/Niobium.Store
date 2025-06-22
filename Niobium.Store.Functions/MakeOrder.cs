@@ -25,8 +25,15 @@ public class MakeOrder(
         var request = await JsonSerializer.DeserializeAsync<OrderRequest>(req.Body, options: serializationOptions, cancellationToken: cancellationToken);
         if (request == null)
         {
-            return new BadRequestResult();
+            return new BadRequestObjectResult(new { Error = "Invalid order request." });
         }
+
+        var tenant = req.GetTenant();
+        if (string.IsNullOrWhiteSpace(tenant))
+        {
+            return new BadRequestObjectResult(new { Error = "Tenant is required." });
+        }
+        request.Tenant = tenant;
 
         request.TryValidate(out var validationState);
         if (!validationState.IsValid)
@@ -35,7 +42,7 @@ public class MakeOrder(
             return validationState.MakeResponse();
         }
 
-        var risk = await req.AssessRiskAsync(assessor, request.ID, request.Captcha, logger, cancellationToken);
+        var risk = await req.AssessRiskAsync(assessor, request.ID.ToString(), request.Captcha, logger, cancellationToken);
         if (risk != null)
         {
             return risk;
@@ -47,7 +54,7 @@ public class MakeOrder(
         var response = mapper.Map<OrderResponse>(order);
         response.Order = order.GetID();
 
-        var charge = await domain.CreateChargeAsync(req.Headers.Origin, clientIP, cancellationToken);
+        var charge = await domain.CreateChargeAsync(request.Tenant, clientIP, cancellationToken);
         if (charge == null || charge.Instruction == null)
         {
             return new StatusCodeResult(StatusCodes.Status500InternalServerError);

@@ -28,7 +28,7 @@ namespace Niobium.Store
                 Currency = e.NewEntity.Currency,
                 Email = e.NewEntity.Email,
                 ID = customerID,
-                Prefix = Customer.BuildPartitionKey(customerID),
+                Tenant = Customer.BuildPartitionKey(e.NewEntity.Tenant),
                 ShippingAddressLine1 = e.NewEntity.ShippingAddressLine1,
                 ShippingAddressLine2 = e.NewEntity.ShippingAddressLine2,
                 ShippingCity = e.NewEntity.ShippingCity,
@@ -41,7 +41,7 @@ namespace Niobium.Store
             };
 
             var customerDomain = await cusomterRepo.GetAsync(
-                Customer.BuildPartitionKey(customerID),
+                Customer.BuildPartitionKey(e.NewEntity.Tenant),
                 Customer.BuildRowKey(customerID),
                 cancellationToken: cancellationToken);
             await customerDomain.CreateCustomerIfNotExistAsync(customer, cancellationToken);

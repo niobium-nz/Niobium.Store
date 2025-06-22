@@ -23,5 +23,15 @@ namespace Niobium.Store
 
             return user;
         }
+
+        public static string GetTenant(this Transaction transaction)
+        {
+            if (transaction == null || string.IsNullOrWhiteSpace(transaction.Tenant))
+            {
+                throw new InvalidOperationException("Transaction does not contain tenant info.");
+            }
+
+            return transaction.Tenant;
+        }
     }
 }

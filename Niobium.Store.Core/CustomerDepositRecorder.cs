@@ -8,7 +8,14 @@ namespace Niobium.Store
         : AccountDepositRecorder<CustomerDomain, Customer>(repo)
     {
         protected override string BuildPartitionKey(Transaction transaction)
-            => Customer.BuildPartitionKey(transaction.GetCustomer());
+        {
+            if (transaction.Tenant == null)
+            {
+                throw new ArgumentException("Transaction tenant cannot be null.");
+            }
+
+            return Customer.BuildPartitionKey(transaction.Tenant);
+        }
 
         protected override string BuildRowKey(Transaction transaction)
             => Customer.BuildRowKey(transaction.GetCustomer());

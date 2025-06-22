@@ -34,7 +34,8 @@ namespace Niobium.Store
             builder.Services.AddDomainEventHandler<CustomerCreator, Order>();
             builder.Services.AddDomainEventHandler<ReceiptIssuer, Order>();
             builder.Services.AddDomainEventHandler<OrderCreatedEventAdaptor, Order>();
-            builder.Services.EnableExternalEvent<Order, OrderCreatedEvent>();
+            builder.Services.AddDomainEventHandler<SubscriptionSynchronizer, Order>();
+            builder.Services.EnableExternalEvent<OrderCreatedEvent, Order>();
         }
     }
 }

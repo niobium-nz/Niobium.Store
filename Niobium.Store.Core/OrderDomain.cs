@@ -255,6 +255,7 @@ namespace Niobium.Store
                 ShippingSuburb = request.ShippingSuburb,
                 TimeZone = request.TimeZone,
                 Culture = request.Culture,
+                Tenant = request.Tenant,
             };
     }
 }
