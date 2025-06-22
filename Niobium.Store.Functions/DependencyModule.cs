@@ -7,6 +7,7 @@ using Cod.Platform.ServiceBus;
 using Cod.Platform.StorageTable;
 using Cod.Table.StorageAccount;
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Niobium.Notification;
 
@@ -34,7 +35,8 @@ namespace Niobium.Store.Functions
             builder.Services.AddTransient(typeof(CloudTableRepository<>));
             builder.Services.AddMemoryCachedRepository<Listing>();
             builder.Services.AddMemoryCachedRepository<ShippingOption>();
-            builder.Services.AddMessagingBroker<SubscribeCommand>();
+
+            builder.Services.AddMessagingBroker<SubscribeCommand>(builder.Configuration.GetSection(nameof(SubscriptionServiceBusOptions)).Bind);
         }
     }
 }
