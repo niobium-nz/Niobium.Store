@@ -18,6 +18,7 @@ variables:
   appName: 'niobiumstoreFunc'
   serviceBusNamespace: 'niobiumstoresb'
   orderCreateEventQueueName: 'ordercreatedevent'
+  orderSettledEventQueueName: 'ordersettledevent'
   subscriptionServiceBusResourceGroup: 'niobium-emailnotification'
   subscriptionServiceBusNamespace: 'niobiumemailsb'
   enableStagingSlot: true
@@ -86,7 +87,7 @@ stages:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
         serviceBusNamespaceName: $(serviceBusNamespace)
-        serviceBusQueueNames: [$(orderCreateEventQueueName)]
+        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: Subscription

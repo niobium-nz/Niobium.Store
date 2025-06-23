@@ -21,8 +21,8 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
-    <PackageReference Include="Cod.Platform.Finance" Version="2.2.86" />
-    <PackageReference Include="Niobium.Notification.Abstractions" Version="1.0.48" />
+    <PackageReference Include="Cod.Platform.Finance" Version="2.2.88" />
+    <PackageReference Include="Niobium.Notification.Abstractions" Version="1.0.50" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
   </ItemGroup>
 

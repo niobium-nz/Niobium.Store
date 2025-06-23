@@ -18,6 +18,8 @@ namespace Niobium.Store
          : AccountableDomain<Customer>(repo, eventHandlers, transactionRepo, accountingRepo, auditors, cacheStore, logger)
     {
         private const string OrderSettlementRemark = "OrderSettlement";
+        
+        public override string? Tenant => this.PartitionKey;
 
         public override string AccountingPrincipal => this.RowKey;
 

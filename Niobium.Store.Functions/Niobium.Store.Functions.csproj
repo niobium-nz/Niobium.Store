@@ -30,10 +30,10 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.2" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.22.2" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.5" />
-    <PackageReference Include="Cod.Platform.Captcha.Recaptcha" Version="2.2.86" />
-    <PackageReference Include="Cod.Platform.Finance.Stripe" Version="2.2.86" />
-    <PackageReference Include="Cod.Platform.StorageTable" Version="2.2.86" />
-    <PackageReference Include="Cod.Platform.ServiceBus" Version="2.2.86" />
+    <PackageReference Include="Cod.Platform.Captcha.Recaptcha" Version="2.2.88" />
+    <PackageReference Include="Cod.Platform.Finance.Stripe" Version="2.2.88" />
+    <PackageReference Include="Cod.Platform.StorageTable" Version="2.2.88" />
+    <PackageReference Include="Cod.Platform.ServiceBus" Version="2.2.88" />
   </ItemGroup>
 
   <ItemGroup>
