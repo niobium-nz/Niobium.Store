@@ -7,7 +7,7 @@ namespace Niobium.Store
     {
         public async override Task HandleCoreAsync(EntityChangedEvent<Order> e, CancellationToken cancellationToken)
         {
-            if (e.ChangeType.HasFlag(EntityChangeType.Created) && e.Entity != null)
+            if (e.ChangeType.HasFlag(EntityChangeType.Created))
             {
                 await queue.EnqueueAsync(new MessagingEntry<OrderCreatedEvent>
                 {
