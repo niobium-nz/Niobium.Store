@@ -7,11 +7,14 @@ namespace Niobium.Store
     {
         public async override Task HandleCoreAsync(EntityChangedEvent<Order> e, CancellationToken cancellationToken)
         {
-            await queue.EnqueueAsync(new MessagingEntry<OrderCreatedEvent>
+            if (e.ChangeType.HasFlag(EntityChangeType.Created) && e.Entity != null)
             {
-                ID = e.NewEntity.GetFullID(),
-                Value = new OrderCreatedEvent { NewOrder = e.NewEntity },
-            }, cancellationToken: cancellationToken);
+                await queue.EnqueueAsync(new MessagingEntry<OrderCreatedEvent>
+                {
+                    ID = e.Entity.GetFullID(),
+                    Value = new OrderCreatedEvent { Order = e.Entity },
+                }, cancellationToken: cancellationToken);
+            }
         }
     }
 }

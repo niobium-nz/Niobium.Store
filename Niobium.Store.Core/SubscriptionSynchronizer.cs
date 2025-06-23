@@ -12,14 +12,14 @@ namespace Niobium.Store
         {
             await broker.EnqueueAsync(new MessagingEntry<SubscribeCommand>
             {
-                ID = e.NewOrder.GetFullID(),
+                ID = e.Order.GetFullID(),
                 Value = new SubscribeCommand
                 {
-                    Email = e.NewOrder.Email,
-                    Campaign = e.NewOrder.Items,
-                    FirstName = e.NewOrder.Consignee,
-                    ID = e.NewOrder.GetID().ToString(),
-                    Tenant = e.NewOrder.Tenant,
+                    Email = e.Order.Email,
+                    Campaign = e.Order.Items,
+                    FirstName = e.Order.Consignee,
+                    ID = e.Order.GetID().ToString(),
+                    Tenant = e.Order.Tenant,
                 }
             }, cancellationToken: cancellationToken);
         }

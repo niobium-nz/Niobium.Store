@@ -191,6 +191,11 @@ stages:
               "name": "AzureWebJobs.OrderCreatedEventConsumer.Disabled",
               "value": "true",
               "slotSetting": true
+            },
+            {
+              "name": "AzureWebJobs.OrderSettledEventConsumer.Disabled",
+              "value": "true",
+              "slotSetting": true
             }
           ]
 

@@ -42,7 +42,17 @@ namespace Niobium.Store
         public async Task<bool> SettleAsync(long order, CancellationToken cancellationToken = default)
         {
             var orderDomain = await orderRepo.GetAsync(Order.BuildPartitionKey(Customer.ParseID(this.RowKey)), Order.BuildRowKey(order), cancellationToken: cancellationToken);
+            var orderEntity = await orderDomain.GetEntityAsync(cancellationToken);
+            if (orderEntity.Status >= (int)OrderStatus.Paid)
+            {
+                return true; // Order is already settled or paid, nothing to do.
+            }
+
             var due = await orderDomain.FigureDueAsync(cancellationToken);
+            if (due.Cents <= 0)
+            {
+                return true; // No due amount to settle, nothing to do.
+            }
 
             var fullID = new StorageKey { PartitionKey = orderDomain.PartitionKey, RowKey = orderDomain.RowKey };
             var balance = await this.GetBalanceAsync(DateTimeOffset.UtcNow, cancellationToken);

@@ -95,7 +95,7 @@ namespace Niobium.Store
 
             if (entity.Paid >= entity.GrandTotal)
             {
-                if (entity.Status == (int)OrderStatus.Created)
+                if (entity.Status < (int)OrderStatus.Paid)
                 {
                     entity.Status = (int)OrderStatus.Paid;
                 }

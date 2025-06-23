@@ -14,10 +14,10 @@ namespace Niobium.Store
                 throw new ArgumentException("Transaction tenant cannot be null.");
             }
 
-            return Customer.BuildPartitionKey(transaction.Tenant);
+            return Customer.BuildRowKey(transaction.GetCustomer());
         }
 
         protected override string BuildRowKey(Transaction transaction)
-            => Customer.BuildRowKey(transaction.GetCustomer());
+            => Order.BuildRowKey(transaction.GetOrder());
     }
 }
