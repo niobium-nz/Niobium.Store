@@ -16,6 +16,7 @@ variables:
   serviceConnection: 'niobium-store'
   resourceGroupName: 'niobium-store'
   appName: 'niobiumstoreFunc'
+  tableDB: 'niobiumstoredb'
   serviceBusNamespace: 'niobiumstoresb'
   orderCreateEventQueueName: 'ordercreatedevent'
   orderSettledEventQueueName: 'ordersettledevent'
@@ -50,7 +51,7 @@ stages:
       appName: $(appName)
       enableKeyVault: true
       enableStagingSlot: ${{ variables.enableStagingSlot }}
-      allowedOrigins: 'https://www.niobium.co.nz'
+      allowedOrigins: '*'
       checkoutDevopsStep:
         checkout: devops
 
@@ -68,9 +69,9 @@ stages:
       parameters:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
-        storageAccountName: 'niobiumstoredb'
+        storageAccountName: $(tableDB)
         contributorPrincipalId: $(functionAppPrincipalId)
-        allowedOrigins: 'http://localhost:7109,https://www.niobium.co.nz'
+        allowedOrigins: '*'
 
   - job: Messaging
     dependsOn: 
