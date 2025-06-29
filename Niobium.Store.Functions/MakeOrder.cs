@@ -1,4 +1,3 @@
-using System.Text.Json;
 using AutoMapper;
 using Cod;
 using Cod.Platform;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using JsonSerializer = System.Text.Json.JsonSerializer;
+using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace Niobium.Store.Functions;
 
@@ -17,17 +16,12 @@ public class MakeOrder(
     IMapper mapper,
     ILogger<MakeOrder> logger)
 {
-    private static readonly JsonSerializerOptions serializationOptions = new(JsonSerializerDefaults.Web);
-
     [Function(nameof(MakeOrder))]
-    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "orders")] HttpRequest req, CancellationToken cancellationToken)
+    public async Task<IActionResult> Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "orders")] HttpRequest req,
+        [FromBody] OrderRequest request,
+        CancellationToken cancellationToken)
     {
-        var request = await JsonSerializer.DeserializeAsync<OrderRequest>(req.Body, options: serializationOptions, cancellationToken: cancellationToken);
-        if (request == null)
-        {
-            return new BadRequestObjectResult(new { Error = "Invalid order request." });
-        }
-
         var tenant = req.GetTenant();
         if (string.IsNullOrWhiteSpace(tenant))
         {
@@ -38,7 +32,6 @@ public class MakeOrder(
         request.TryValidate(out var validationState);
         if (!validationState.IsValid)
         {
-            logger.LogWarning("Validation failed for order request: {Errors}", JsonSerializer.Serialize(validationState.ToDictionary(), serializationOptions));
             return validationState.MakeResponse();
         }
 

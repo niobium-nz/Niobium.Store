@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Cod;
 using Cod.Platform;
 using Cod.Platform.Captcha.ReCaptcha;
@@ -6,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using JsonSerializer = System.Text.Json.JsonSerializer;
+using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace Niobium.Store.Functions;
 
@@ -15,21 +14,15 @@ public class GetQuote(
     IVisitorRiskAssessor assessor,
     ILogger<GetQuote> logger)
 {
-    private static readonly JsonSerializerOptions serializationOptions = new(JsonSerializerDefaults.Web);
-
     [Function(nameof(GetQuote))]
-    public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "quote")] HttpRequest req, CancellationToken cancellationToken)
+    public async Task<IActionResult> Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "quote")] HttpRequest req,
+        [FromBody] QuoteRequest request,
+        CancellationToken cancellationToken)
     {
-        var request = await JsonSerializer.DeserializeAsync<QuoteRequest>(req.Body, options: serializationOptions, cancellationToken: cancellationToken);
-        if (request == null)
-        {
-            return new BadRequestResult();
-        }
-
         request.TryValidate(out var validationState);
         if (!validationState.IsValid)
         {
-            logger.LogWarning("Validation failed for order request: {Errors}", JsonSerializer.Serialize(validationState.ToDictionary(), serializationOptions));
             return validationState.MakeResponse();
         }
 
