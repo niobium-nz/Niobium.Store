@@ -5,7 +5,6 @@ using Cod.Platform.Captcha.ReCaptcha;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace Niobium.Store.Functions;
@@ -13,8 +12,7 @@ namespace Niobium.Store.Functions;
 public class MakeOrder(
     Func<OrderDomain> domainFactory,
     IVisitorRiskAssessor assessor,
-    IMapper mapper,
-    ILogger<MakeOrder> logger)
+    IMapper mapper)
 {
     [Function(nameof(MakeOrder))]
     public async Task<IActionResult> Run(
@@ -35,11 +33,7 @@ public class MakeOrder(
             return validationState.MakeResponse();
         }
 
-        var risk = await req.AssessRiskAsync(assessor, request.ID.ToString(), request.Captcha, logger, cancellationToken);
-        if (risk != null)
-        {
-            return risk;
-        }
+        await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), tenant: request.Tenant, cancellationToken: cancellationToken);
 
         var clientIP = req.GetRemoteIP();
         var domain = domainFactory();

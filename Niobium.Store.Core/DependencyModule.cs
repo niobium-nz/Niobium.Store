@@ -5,16 +5,13 @@ using Cod.Messaging;
 using Cod.Platform.Finance;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Niobium.Store
 {
     public static class DependencyModule
     {
         private static volatile bool loaded;
-        private static readonly MapperConfiguration mapperConfiguration = new(cfg =>
-        {
-            cfg.CreateMap<Order, OrderResponse>();
-        });
 
         public static void AddCore(this IFunctionsWorkerApplicationBuilder builder)
         {
@@ -26,7 +23,8 @@ namespace Niobium.Store
             loaded = true;
 
             builder.UsePlatformPayment<CustomerDepositRecorder, CustomerDomain, Customer>();
-            builder.Services.AddTransient(sp => mapperConfiguration.CreateMapper());
+            builder.Services.AddSingleton(sp => new MapperConfiguration(ConfigureMapping, sp.GetRequiredService<ILoggerFactory>()));
+            builder.Services.AddTransient(sp => sp.GetRequiredService<MapperConfiguration>().CreateMapper());
             builder.Services.AddDomain<OrderDomain, Order>();
             builder.Services.AddDomain<CustomerDomain, Customer>();
             builder.Services.AddDomain<ShippingOptionDomain, ShippingOption>();
@@ -38,6 +36,11 @@ namespace Niobium.Store
             builder.Services.AddDomainEventHandler<SubscriptionSynchronizer, Order>();
             builder.Services.EnableExternalEvent<OrderCreatedEvent, Order>();
             builder.Services.EnableExternalEvent<OrderSettledEvent, Order>();
+        }
+
+        private static void ConfigureMapping(IMapperConfigurationExpression cfg)
+        {
+            cfg.CreateMap<Order, OrderResponse>();
         }
     }
 }
