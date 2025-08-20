@@ -134,13 +134,13 @@ namespace Niobium.Store
             };
 
             var charge = await paymentService.Value.ChargeAsync(chargeRequest);
-            if (!charge.IsSuccess)
+            if (charge == null || !charge.IsSuccess)
             {
-                logger.LogError($"Failed to process charge for order {entity.GetFullID()}: {charge.Message}");
+                logger.LogError($"Failed to process charge for order {entity.GetFullID()}: {charge?.Message}");
                 return null;
             }
 
-            if (charge.Result.Instruction == null)
+            if (charge.Result?.Instruction == null)
             {
                 logger.LogError($"Failed to get payment instruction for order {entity.GetFullID()}: {charge.Message}");
                 return null;

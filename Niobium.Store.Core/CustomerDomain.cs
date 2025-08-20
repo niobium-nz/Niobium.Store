@@ -18,17 +18,17 @@ namespace Niobium.Store
          : AccountableDomain<Customer>(repo, eventHandlers, transactionRepo, accountingRepo, auditors, cacheStore, logger)
     {
         private const string OrderSettlementRemark = "OrderSettlement";
-        
+
         public override string? Tenant => this.PartitionKey;
 
-        public override string AccountingPrincipal => this.RowKey;
+        public override string AccountingPrincipal => this.RowKey!;
 
         public async Task<Customer> CreateCustomerIfNotExistAsync(Customer customer, CancellationToken cancellationToken)
         {
             var existingCustomer = await this.GetEntityAsync(cancellationToken);
             if (existingCustomer != null)
             {
-                Logger.LogInformation($"Customer {this.RowKey} already exists. No action taken.");
+                this.Logger.LogInformation($"Customer {this.RowKey} already exists. No action taken.");
                 return existingCustomer;
             }
 
@@ -41,7 +41,13 @@ namespace Niobium.Store
 
         public async Task<bool> SettleAsync(long order, CancellationToken cancellationToken = default)
         {
+            this.CheckInitialized();
             var orderDomain = await orderRepo.GetAsync(Order.BuildPartitionKey(Customer.ParseID(this.RowKey)), Order.BuildRowKey(order), cancellationToken: cancellationToken);
+            if (!orderDomain.Initialized)
+            {
+                throw new Cod.ApplicationException(Cod.Platform.InternalError.NotFound);
+            }
+
             var orderEntity = await orderDomain.GetEntityAsync(cancellationToken);
             if (orderEntity.Status >= (int)OrderStatus.Paid)
             {
@@ -59,18 +65,18 @@ namespace Niobium.Store
             if (balance.Available < due.Cents)
             {
                 var error = $"Insufficient balance to settle order {fullID}. Required: {due}, Available: {balance.Available}";
-                Logger.LogWarning(error);
+                this.Logger.LogWarning(error);
                 return false; // Not enough balance to settle the order.
             }
 
-            await this.FreezeAsync(due.Cents);
-            Logger.LogInformation($"Settling order {fullID} with amount {due} , current balance available:  {balance.Available}");
+            _ = await this.FreezeAsync(due.Cents);
+            this.Logger.LogInformation($"Settling order {fullID} with amount {due} , current balance available:  {balance.Available}");
 
-            IEnumerable<Transaction> transactions = await this.MakeTransactionAsync(-due.Cents, (int)TransactionReason.Spend, OrderSettlementRemark, fullID.ToString());
+            var transactions = await this.MakeTransactionAsync(-due.Cents, (int)TransactionReason.Spend, OrderSettlementRemark, fullID.ToString());
             var result = await orderDomain.PayAsync(transactions.Single(), cancellationToken);
-            Logger.LogInformation($"Order {fullID} settled by transaction: {transactions.Single().GetID()}");
+            this.Logger.LogInformation($"Order {fullID} settled by transaction: {transactions.Single().GetID()}");
 
-            await this.UnfreezeAsync(due.Cents);
+            _ = await this.UnfreezeAsync(due.Cents);
             return result;
         }
     }

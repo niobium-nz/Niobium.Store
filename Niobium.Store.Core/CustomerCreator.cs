@@ -3,9 +3,9 @@ using Cod;
 namespace Niobium.Store
 {
     internal class CustomerCreator(IDomainRepository<CustomerDomain, Customer> cusomterRepo)
-        : DomainEventHandler<IDomain<Order>, EntityChangedEvent<Order>>
+        : DomainEventHandler<IDomain<Order>, EntityChangedEventArgs<Order>>
     {
-        public override async Task HandleCoreAsync(EntityChangedEvent<Order> e, CancellationToken cancellationToken = default)
+        public override async Task HandleCoreAsync(EntityChangedEventArgs<Order> e, CancellationToken cancellationToken = default)
         {
             if (e.ChangeType.HasFlag(EntityChangeType.Created) && e.Entity.Status == (int)OrderStatus.Created)
             {
