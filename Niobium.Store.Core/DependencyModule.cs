@@ -1,8 +1,8 @@
 using AutoMapper;
-using Cod;
-using Cod.Finance;
-using Cod.Messaging;
-using Cod.Platform.Finance;
+using Niobium;
+using Niobium.Finance;
+using Niobium.Messaging;
+using Niobium.Platform.Finance;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

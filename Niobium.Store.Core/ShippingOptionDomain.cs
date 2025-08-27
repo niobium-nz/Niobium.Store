@@ -1,4 +1,4 @@
-using Cod;
+using Niobium;
 using Microsoft.Extensions.Logging;
 
 namespace Niobium.Store
@@ -37,7 +37,7 @@ namespace Niobium.Store
             {
                 var error = $"{country} is not supported by shipping option '{input}'";
                 logger.LogWarning(error);
-                throw new Cod.ApplicationException(InternalError.BadRequest, error) { Reference = error };
+                throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
             return country;

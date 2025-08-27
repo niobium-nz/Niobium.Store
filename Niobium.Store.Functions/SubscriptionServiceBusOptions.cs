@@ -1,4 +1,4 @@
-using Cod.Messaging.ServiceBus;
+using Niobium.Messaging.ServiceBus;
 
 namespace Niobium.Store.Functions
 {

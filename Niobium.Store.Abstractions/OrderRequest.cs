@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using Cod;
+using Niobium;
 
 namespace Niobium.Store
 {

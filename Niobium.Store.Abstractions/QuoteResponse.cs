@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Cod.Finance;
+using Niobium.Finance;
 
 namespace Niobium.Store
 {

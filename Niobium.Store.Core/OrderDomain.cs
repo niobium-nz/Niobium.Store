@@ -1,6 +1,6 @@
-using Cod;
-using Cod.Finance;
-using Cod.Platform.Finance;
+using Niobium;
+using Niobium.Finance;
+using Niobium.Platform.Finance;
 using Microsoft.Extensions.Logging;
 
 namespace Niobium.Store
@@ -156,7 +156,7 @@ namespace Niobium.Store
             {
                 var error = $"Tax does not match across the same order: {string.Join(',', listings.Select(x => x.ID))}";
                 logger.LogWarning(error);
-                throw new Cod.ApplicationException(InternalError.BadRequest, error) { Reference = error };
+                throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
             var taxRates = listings.Select(x => x.TaxRate).Distinct().ToList();
@@ -164,7 +164,7 @@ namespace Niobium.Store
             {
                 var error = $"Tax rate does not match across the same order: {string.Join(',', listings.Select(x => x.ID))}";
                 logger.LogWarning(error);
-                throw new Cod.ApplicationException(InternalError.BadRequest, error) { Reference = error };
+                throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
             return (taxRates.Single(), taxKinds.Single());
@@ -177,14 +177,14 @@ namespace Niobium.Store
             {
                 var error = $"Currency must match: {string.Join(',', currencies)}";
                 logger.LogWarning(error);
-                throw new Cod.ApplicationException(InternalError.BadRequest, error) { Reference = error };
+                throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
             if (!Currency.TryParse(currencies.Single(), out var currency))
             {
                 var error = $"Invalid currency: {currencies.Single()}";
                 logger.LogWarning(error);
-                throw new Cod.ApplicationException(InternalError.BadRequest, error) { Reference = error };
+                throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
             return currency;
@@ -197,7 +197,7 @@ namespace Niobium.Store
             {
                 var error = $"Invalid shipping option: {shippingID}";
                 logger.LogWarning(error);
-                throw new Cod.ApplicationException(InternalError.BadRequest, error) { Reference = error };
+                throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
             return shippingOption;
@@ -213,7 +213,7 @@ namespace Niobium.Store
                 {
                     var error = $"Invalid listing: {item.Listing} with option: {item.Option}";
                     logger.LogWarning(error);
-                    throw new Cod.ApplicationException(InternalError.NotFound, error) { Reference = error };
+                    throw new ApplicationException(InternalError.NotFound, error) { Reference = error };
                 }
 
                 for (int i = 0; i < item.Quantity; i++)

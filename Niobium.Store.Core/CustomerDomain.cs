@@ -1,7 +1,7 @@
-using Cod;
-using Cod.Finance;
-using Cod.Platform;
-using Cod.Platform.Finance;
+using Niobium;
+using Niobium.Finance;
+using Niobium.Platform;
+using Niobium.Platform.Finance;
 using Microsoft.Extensions.Logging;
 
 namespace Niobium.Store
@@ -45,7 +45,7 @@ namespace Niobium.Store
             var orderDomain = await orderRepo.GetAsync(Order.BuildPartitionKey(Customer.ParseID(this.RowKey)), Order.BuildRowKey(order), cancellationToken: cancellationToken);
             if (!orderDomain.Initialized)
             {
-                throw new Cod.ApplicationException(Cod.Platform.InternalError.NotFound);
+                throw new ApplicationException(InternalError.NotFound);
             }
 
             var orderEntity = await orderDomain.GetEntityAsync(cancellationToken);

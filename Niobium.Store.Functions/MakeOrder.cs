@@ -1,7 +1,7 @@
 using AutoMapper;
-using Cod;
-using Cod.Platform;
-using Cod.Platform.Captcha.ReCaptcha;
+using Niobium;
+using Niobium.Platform;
+using Niobium.Platform.Captcha.ReCaptcha;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;

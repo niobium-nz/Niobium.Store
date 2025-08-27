@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Cod;
+using Niobium;
 
 namespace Niobium.Store
 {

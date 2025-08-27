@@ -1,6 +1,6 @@
-using Cod;
-using Cod.Finance;
-using Cod.Platform.Finance;
+using Niobium;
+using Niobium.Finance;
+using Niobium.Platform.Finance;
 
 namespace Niobium.Store
 {
