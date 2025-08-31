@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Niobium;
 
 namespace Niobium.Store
 {
@@ -30,7 +29,7 @@ namespace Niobium.Store
 
         public long TaxRate { get; set; }
 
-        public string? TaxKind { get; set; }
+        public int TaxKind { get; set; }
 
         public required string ShippingOptions { get; set; }
 
@@ -38,14 +37,11 @@ namespace Niobium.Store
 
         public string? Note { get; set; }
 
-        public string[] GetShippingOptions()
-        {
-            return string.IsNullOrWhiteSpace(ShippingOptions)
-                ? []
-                : ShippingOptions.Split(GetShippingOptionsSplitor(), StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        }
+        public string[] GetShippingOptions() => !String.IsNullOrWhiteSpace(this.ShippingOptions)
+                ? this.ShippingOptions.Split(GetShippingOptionsSplitor(), StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                : [];
 
-        public string GetFullID() => BuildFullID(ID, Option);
+        public string GetFullID() => BuildFullID(this.ID, this.Option);
 
         public static char GetShippingOptionsSplitor() => ',';
 
@@ -59,11 +55,11 @@ namespace Niobium.Store
 
         public static (int listingID, string option) ParseFullID(string input)
         {
-            var id = StorageKeyExtensions.ParseFullID(input);
-            return (int.Parse(id.PartitionKey), id.RowKey);
+            var id = StorageKey.Parse(input);
+            return (Int32.Parse(id.PartitionKey), id.RowKey);
         }
 
         public static string BuildFullID(string partitionKey, string rowKey)
-            => new StorageKey { PartitionKey = partitionKey, RowKey = rowKey }.BuildFullID();
+            => new StorageKey(partitionKey,  rowKey).ToString();
     }
 }

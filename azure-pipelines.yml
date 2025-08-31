@@ -20,8 +20,10 @@ variables:
   serviceBusNamespace: 'niobiumstoresb'
   orderCreateEventQueueName: 'ordercreatedevent'
   orderSettledEventQueueName: 'ordersettledevent'
-  subscriptionServiceBusResourceGroup: 'niobium-emailnotification'
-  subscriptionServiceBusNamespace: 'niobiumemailsb'
+  subscribeServiceBusResourceGroup: 'niobium-emailnotification'
+  subscribeServiceBusNamespace: 'niobiumemailsb'
+  invoiceServiceBusResourceGroup: 'niobium-invoicing'
+  invoiceServiceBusNamespace: 'niobiuminvoicingsb'
   enableStagingSlot: true
 
 pool:
@@ -91,7 +93,7 @@ stages:
         serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
-  - job: Subscription
+  - job: SubscribeRBAC
     dependsOn: 
       - Infrastructure
     condition: succeeded()
@@ -104,8 +106,25 @@ stages:
     - template: pipelines/steps/grantPermissionServiceBus.yml@devops
       parameters:
         azureServiceConnection: $(serviceConnection)
-        resourceGroupName: $(subscriptionServiceBusResourceGroup)
-        serviceBusNamespaceName: $(subscriptionServiceBusNamespace)
+        resourceGroupName: $(subscribeServiceBusResourceGroup)
+        serviceBusNamespaceName: $(subscribeServiceBusNamespace)
+        dataOwnerPrincipalId: $(functionAppPrincipalId)
+
+  - job: InvoiceRBAC
+    dependsOn: 
+      - Infrastructure
+    condition: succeeded()
+    pool:
+      vmImage: $(buildAgentVmImage)
+    variables:
+      functionAppPrincipalId: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalId']]
+    steps:
+    - checkout: devops
+    - template: pipelines/steps/grantPermissionServiceBus.yml@devops
+      parameters:
+        azureServiceConnection: $(serviceConnection)
+        resourceGroupName: $(invoiceServiceBusResourceGroup)
+        serviceBusNamespaceName: $(invoiceServiceBusNamespace)
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: Configuration
@@ -113,7 +132,8 @@ stages:
       - Infrastructure
       - Table
       - Messaging
-      - Subscription
+      - SubscribeRBAC
+      - InvoiceRBAC
     condition: succeeded()
     pool:
       vmImage: $(buildAgentVmImage)
@@ -121,7 +141,8 @@ stages:
       tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableFQDN']]
       keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
       serviceBusFQDN: $[dependencies.Messaging.outputs['newServiceBusProperties.fullyQualifiedNamespace']]
-      subscriptionServiceBusFQDN: $[dependencies.Subscription.outputs['serviceBusPermissionProperties.fullyQualifiedNamespace']]
+      subscribeServiceBusFQDN: $[dependencies.SubscribeRBAC.outputs['serviceBusPermissionProperties.fullyQualifiedNamespace']]
+      invoiceServiceBusFQDN: $[dependencies.InvoiceRBAC.outputs['serviceBusPermissionProperties.fullyQualifiedNamespace']]
     steps:
     - checkout: none
     - pwsh: Write-Output "##vso[task.setvariable variable=slotName;]production"
@@ -149,8 +170,13 @@ stages:
               "slotSetting": false
             },
             {
-              "name": "SubscriptionServiceBusOptions:FullyQualifiedNamespace",
-              "value": "$(subscriptionServiceBusFQDN)",
+              "name": "SubscribeQueueOptions:FullyQualifiedNamespace",
+              "value": "$(subscribeServiceBusFQDN)",
+              "slotSetting": false
+            },
+            {
+              "name": "InvoiceQueueOptions:FullyQualifiedNamespace",
+              "value": "$(invoiceServiceBusFQDN)",
               "slotSetting": false
             },
             {

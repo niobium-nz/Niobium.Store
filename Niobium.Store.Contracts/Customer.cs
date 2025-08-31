@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Niobium;
 
 namespace Niobium.Store
 {

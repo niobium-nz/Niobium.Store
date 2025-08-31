@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Niobium;
 
 namespace Niobium.Store
 {
@@ -27,24 +26,24 @@ namespace Niobium.Store
 
         public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (!Country.TryParse(ShippingCountry, out _))
+            if (!Country.TryParse(this.ShippingCountry, out _))
             {
-                yield return new ValidationResult($"Invalid country code: {ShippingCountry}", [nameof(ShippingCountry)]);
+                yield return new ValidationResult($"Invalid country code: {this.ShippingCountry}", [nameof(this.ShippingCountry)]);
             }
 
-            if (Cart.Count == 0)
+            if (this.Cart.Count == 0)
             {
-                yield return new ValidationResult($"No valid listings found from the order: {ID}", [nameof(Cart)]);
+                yield return new ValidationResult($"No valid listings found from the order: {this.ID}", [nameof(this.Cart)]);
             }
         }
 
         public virtual void Sanitize()
         {
-            Coupon = Coupon?.Trim().ToUpperInvariant();
-            Captcha = Captcha.Trim();
-            if (Country.TryParse(ShippingCountry, out var country))
+            this.Coupon = this.Coupon?.Trim().ToUpperInvariant();
+            this.Captcha = this.Captcha.Trim();
+            if (Country.TryParse(this.ShippingCountry, out var country))
             {
-                ShippingCountry = country.Alpha2;
+                this.ShippingCountry = country.Alpha2;
             }
         }
     }

@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using Niobium;
 
 namespace Niobium.Store
 {
@@ -79,6 +78,9 @@ namespace Niobium.Store
 
         public bool MarketingSubscription { get; set; }
 
+        [StringLength(10)]
+        public string? Track { get; set; }
+
         public override IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             var baseResults = base.Validate(validationContext);
@@ -87,9 +89,9 @@ namespace Niobium.Store
                 yield return baseResult;
             }
 
-            if (Timestamp <= 0 || DateTimeOffset.UtcNow - DateTimeOffsetExtensions.FromReverseUnixTimeMilliseconds(Timestamp) > TimeSpan.FromMinutes(20))
+            if (this.Timestamp <= 0 || DateTimeOffset.UtcNow - DateTimeOffsetExtensions.FromReverseUnixTimeMilliseconds(this.Timestamp) > TimeSpan.FromMinutes(20))
             {
-                yield return new ValidationResult($"Invalid order time on the order: {ID}", [nameof(Cart)]);
+                yield return new ValidationResult($"Invalid order time on the order: {this.ID}", [nameof(this.Cart)]);
             }
         }
 
@@ -97,66 +99,71 @@ namespace Niobium.Store
         {
             base.Sanitize();
 
-            if (!CultureInfoExtensions.TryParseCultureInfo(Culture, out var culture))
+            if (!CultureInfoExtensions.TryParseCultureInfo(this.Culture, out var culture))
             {
                 culture = new CultureInfo("en-US");
             }
 
-            Culture = culture.Name;
-            Notes = Notes?.Trim();
-            Consignee = culture.ToTitleCase(Consignee.Trim());
+            this.Culture = culture.Name;
+            this.Notes = this.Notes?.Trim();
+            this.Consignee = culture.ToTitleCase(this.Consignee.Trim());
 
             //TODO (whan) Phone number -> E.164 format
             //TODO (whan) Postcode -> validate according to specific country
 
-            ShippingAddressLine1 = culture.ToTitleCase(ShippingAddressLine1.Trim());
-            if (ShippingAddressLine2 != null)
+            this.ShippingAddressLine1 = culture.ToTitleCase(this.ShippingAddressLine1.Trim());
+            if (this.ShippingAddressLine2 != null)
             {
-                ShippingAddressLine2 = culture.ToTitleCase(ShippingAddressLine2.Trim());
+                this.ShippingAddressLine2 = culture.ToTitleCase(this.ShippingAddressLine2.Trim());
             }
 
-            if (ShippingSuburb != null)
+            if (this.ShippingSuburb != null)
             {
-                ShippingSuburb = culture.ToTitleCase(ShippingSuburb.Trim());
+                this.ShippingSuburb = culture.ToTitleCase(this.ShippingSuburb.Trim());
             }
 
-            ShippingCity = culture.ToTitleCase(ShippingCity.Trim());
+            this.ShippingCity = culture.ToTitleCase(this.ShippingCity.Trim());
 
-            if (ShippingState != null)
+            if (this.ShippingState != null)
             {
-                ShippingState = culture.ToTitleCase(ShippingState.Trim());
+                this.ShippingState = culture.ToTitleCase(this.ShippingState.Trim());
             }
 
-            ShippingPostcode = ShippingPostcode.Trim();
-            BillingName = culture.ToTitleCase(BillingName.Trim());
+            this.ShippingPostcode = this.ShippingPostcode.Trim();
+            this.BillingName = culture.ToTitleCase(this.BillingName.Trim());
 
-            if (BillingBusiness != null)
+            if (this.BillingBusiness != null)
             {
-                BillingBusiness = culture.ToTitleCase(BillingBusiness.Trim());
+                this.BillingBusiness = culture.ToTitleCase(this.BillingBusiness.Trim());
             }
 
-            BillingAddressLine1 = culture.ToTitleCase(BillingAddressLine1.Trim());
-            if (BillingAddressLine2 != null)
+            this.BillingAddressLine1 = culture.ToTitleCase(this.BillingAddressLine1.Trim());
+            if (this.BillingAddressLine2 != null)
             {
-                BillingAddressLine2 = culture.ToTitleCase(BillingAddressLine2.Trim());
+                this.BillingAddressLine2 = culture.ToTitleCase(this.BillingAddressLine2.Trim());
             }
-            if (BillingSuburb != null)
+            if (this.BillingSuburb != null)
             {
-                BillingSuburb = culture.ToTitleCase(BillingSuburb.Trim());
+                this.BillingSuburb = culture.ToTitleCase(this.BillingSuburb.Trim());
             }
-            BillingCity = culture.ToTitleCase(BillingCity.Trim());
+            this.BillingCity = culture.ToTitleCase(this.BillingCity.Trim());
 
-            if (BillingState != null)
+            if (this.BillingState != null)
             {
-                BillingState = culture.ToTitleCase(BillingState.Trim());
+                this.BillingState = culture.ToTitleCase(this.BillingState.Trim());
             }
 
-            BillingPostcode = BillingPostcode.Trim();
-            Email = Email.Trim().ToLowerInvariant();
+            this.BillingPostcode = this.BillingPostcode.Trim();
+            this.Email = this.Email.Trim().ToLowerInvariant();
 
-            if (Country.TryParse(BillingCountry, out var country))
+            if (Country.TryParse(this.BillingCountry, out var country))
             {
-                BillingCountry = country.Alpha2;
+                this.BillingCountry = country.Alpha2;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Track))
+            {
+                Track = Track.Trim();
             }
         }
     }

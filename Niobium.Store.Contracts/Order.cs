@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Niobium;
 
 namespace Niobium.Store
 {
@@ -20,7 +19,7 @@ namespace Niobium.Store
 
         public int Status { get; set; }
 
-        public long Paid { get; set; }
+        public long Settled { get; set; }
 
         public long GrandTotal { get; set; }
 
@@ -34,7 +33,7 @@ namespace Niobium.Store
 
         public long TaxRate { get; set; }
 
-        public string? TaxKind { get; set; }
+        public int TaxKind { get; set; }
 
         public string? Coupon { get; set; }
 
@@ -42,7 +41,7 @@ namespace Niobium.Store
 
         public required string Tenant { get; set; }
 
-        public required string Items { get; set; }
+        public required string Cart { get; set; }
 
         public required string Currency { get; set; }
 
@@ -92,29 +91,30 @@ namespace Niobium.Store
 
         public string? Transactions { get; set; }
 
-        public long GetID() => ParseID(Created);
+        public bool MarketingSubscription { get; set; }
 
-        public string GetFullID() => BuildFullID(Customer, GetID());
+        public string? Track { get; set; }
 
-        public string[] GetItems()
-        {
-            return string.IsNullOrWhiteSpace(Items)
-                ? []
-                : Items.Split(GetItemsSplitor(), StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        }
+        public long GetID() => ParseID(this.Created);
 
-        public static char GetItemsSplitor() => ',';
+        public string GetFullID() => BuildFullID(this.Customer, this.GetID());
+
+        public CartItem[] GetCart() => !String.IsNullOrWhiteSpace(this.Cart)
+                ? JsonMarshaller.Unmarshall<CartItem[]>(this.Cart) ?? []
+                : [];
+
+        public void SetCart(IEnumerable<CartItem> items) => this.Cart = JsonMarshaller.Marshall(items);
 
         public static string BuildFullID(Guid customer, long id) => BuildFullID(customer.ToString(), id.ToString());
 
         public static (Guid customer, long id) ParseFullID(string input)
         {
-            var id = StorageKeyExtensions.ParseFullID(input);
-            return (Guid.Parse(id.PartitionKey), long.Parse(id.RowKey));
+            var id = StorageKey.Parse(input);
+            return (Guid.Parse(id.PartitionKey), Int64.Parse(id.RowKey));
         }
 
         public static string BuildFullID(string partitionKey, string rowKey)
-            => new StorageKey { PartitionKey = partitionKey, RowKey = rowKey }.BuildFullID();
+            => new StorageKey(partitionKey, rowKey).ToString();
 
         public static long ParseID(DateTimeOffset created) => created.ToReverseUnixTimeMilliseconds();
 

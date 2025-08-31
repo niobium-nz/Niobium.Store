@@ -2,12 +2,16 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Niobium.Database.StorageTable;
+using Niobium.Invoicing;
 using Niobium.Messaging.ServiceBus;
 using Niobium.Notification;
 using Niobium.Platform.Captcha.ReCaptcha;
 using Niobium.Platform.Finance;
 using Niobium.Platform.Finance.Stripe;
+using Niobium.Platform.ServiceBus;
 using Niobium.Platform.StorageTable;
+using Niobium.Store.Functions.Options;
+using Niobium.Store.Options;
 
 namespace Niobium.Store.Functions
 {
@@ -28,12 +32,12 @@ namespace Niobium.Store.Functions
             builder.AddDatabase();
             builder.AddMessaging();
             builder.AddCaptcha();
-            builder.AddCore();
+            builder.AddCore(builder.Configuration.GetSection(nameof(StoreInvoicingOptions)).Bind);
 
-            builder.Services.AddTransient(typeof(CloudTableRepository<>));
-            builder.Services.AddMemoryCachedRepository<Listing>();
-            builder.Services.AddMemoryCachedRepository<ShippingOption>();
-            builder.Services.AddMessagingBroker<SubscribeCommand>(builder.Configuration.GetSection(nameof(SubscriptionServiceBusOptions)).Bind);
+            _ = builder.Services.AddMemoryCachedRepository<Listing>();
+            _ = builder.Services.AddMemoryCachedRepository<ShippingOption>();
+            _ = builder.Services.AddMessagingBroker<SubscribeCommand>(builder.Configuration.GetSection(nameof(SubscribeQueueOptions)).Bind);
+            _ = builder.Services.AddMessagingBroker<IssueInvoiceCommand>(builder.Configuration.GetSection(nameof(InvoiceQueueOptions)).Bind);
         }
     }
 }

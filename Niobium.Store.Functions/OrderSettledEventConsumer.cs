@@ -1,8 +1,10 @@
 using Azure.Messaging.ServiceBus;
-using Niobium.Messaging;
-using Niobium.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Niobium.Messaging;
+using Niobium.Messaging.ServiceBus;
+using Niobium.Platform.ServiceBus;
+using Niobium.Store.Functions.Options;
 
 namespace Niobium.Store.Functions
 {
@@ -12,7 +14,7 @@ namespace Niobium.Store.Functions
     {
         [Function(nameof(OrderSettledEventConsumer))]
         public async Task Run(
-            [ServiceBusTrigger("ordersettledevent", AutoCompleteMessages = true, Connection = nameof(ServiceBusOptions))]
+            [ServiceBusTrigger("ordersettledevent", AutoCompleteMessages = true, Connection = nameof(ServiceBusTriggerOptions))]
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken)
         {

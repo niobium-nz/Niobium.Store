@@ -1,11 +1,10 @@
-using Niobium;
 using Niobium.Messaging;
 
-namespace Niobium.Store
+namespace Niobium.Store.Events
 {
-    internal class OrderCreatedEventAdaptor(IMessagingBroker<OrderCreatedEvent> queue) : DomainEventHandler<OrderDomain, EntityChangedEventArgs<Order>>
+    internal class OrderCreatedEventAdaptor(IMessagingBroker<OrderCreatedEvent> queue) : DomainEventHandler<IDomain<Order>, EntityChangedEventArgs<Order>>
     {
-        public async override Task HandleCoreAsync(EntityChangedEventArgs<Order> e, CancellationToken cancellationToken)
+        public override async Task HandleCoreAsync(EntityChangedEventArgs<Order> e, CancellationToken cancellationToken)
         {
             if (e.ChangeType.HasFlag(EntityChangeType.Created))
             {

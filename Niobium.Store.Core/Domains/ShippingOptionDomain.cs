@@ -1,7 +1,7 @@
-using Niobium;
 using Microsoft.Extensions.Logging;
+using Niobium.Finance;
 
-namespace Niobium.Store
+namespace Niobium.Store.Domains
 {
     public class ShippingOptionDomain(
         Lazy<IRepository<ShippingOption>> repository,
@@ -9,11 +9,22 @@ namespace Niobium.Store
         ILogger<ShippingOptionDomain> logger)
         : GenericDomain<ShippingOption>(repository, eventHandlers)
     {
-        public async Task<Country> FigureCountryAsync(string input, CancellationToken cancellationToken = default)
+        public async Task<TaxableAmount> QuoteAsync(QuoteRequest request, CancellationToken cancellationToken = default)
         {
-            if (String.IsNullOrWhiteSpace(input) || !Country.TryParse(input, out var country))
+            await this.ValidateAsync(request.ShippingCountry, cancellationToken);
+            var entity = await this.GetEntityAsync(cancellationToken);
+            return new TaxableAmount
             {
-                throw new ArgumentException($"Invalid '{nameof(input)}'.", nameof(input));
+                Amount = new Amount { Cents = entity.Price, Currency = entity.Currency },
+                Tax = Tax.None,
+            };
+        }
+
+        private async Task ValidateAsync(string countryCode, CancellationToken cancellationToken = default)
+        {
+            if (String.IsNullOrWhiteSpace(countryCode) || !Country.TryParse(countryCode, out var country))
+            {
+                throw new ArgumentException($"Invalid '{nameof(countryCode)}'.", nameof(countryCode));
             }
 
             var isShippingOptionSupported = false;
@@ -24,6 +35,7 @@ namespace Niobium.Store
                 if (!Country.TryParse(supportedCountry, out var c))
                 {
                     logger.LogWarning($"Invalid country code on shipping option {entity.ID}: {supportedCountry}");
+                    continue;
                 }
 
                 if (c == country)
@@ -35,12 +47,10 @@ namespace Niobium.Store
 
             if (!isShippingOptionSupported)
             {
-                var error = $"{country} is not supported by shipping option '{input}'";
-                logger.LogWarning(error);
+                var error = $"{country} is not supported by shipping option '{countryCode}'";
+                logger.LogError(error);
                 throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
-
-            return country;
         }
     }
 }

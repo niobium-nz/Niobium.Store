@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Niobium.Store.Abstractions", "Niobium.Store.Abstractions\Niobium.Store.Abstractions.csproj", "{370CC552-65C6-55C7-9E60-3BB8FE0D1591}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Niobium.Store.Contracts", "Niobium.Store.Contracts\Niobium.Store.Contracts.csproj", "{370CC552-65C6-55C7-9E60-3BB8FE0D1591}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Niobium.Store.Functions", "Niobium.Store.Functions\Niobium.Store.Functions.csproj", "{4221A22B-5901-CF29-CCA1-0A300F9911B1}"
 EndProject

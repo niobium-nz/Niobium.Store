@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Niobium;
 
 namespace Niobium.Store
 {
@@ -28,12 +27,9 @@ namespace Niobium.Store
 
         public required string Countries { get; set; }
 
-        public string[] GetCountries()
-        {
-            return string.IsNullOrWhiteSpace(Countries)
+        public string[] GetCountries() => String.IsNullOrWhiteSpace(this.Countries)
                 ? []
-                : Countries.Split(GetCountriesSplitor(), StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        }
+                : this.Countries.Split(GetCountriesSplitor(), StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         public static string BuildPartitionKey() => "dummy";
 
