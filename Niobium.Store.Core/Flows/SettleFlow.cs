@@ -4,7 +4,10 @@ using Niobium.Store.Payment;
 
 namespace Niobium.Store.Flows
 {
-    internal class SettleFlow(IDomainRepository<OrderDomain, Order> orderRepo, IDomainRepository<CustomerDomain, Customer> customerRepo) : IFlow
+    internal class SettleFlow(
+        IDomainRepository<OrderDomain, Order> orderRepo, 
+        IDomainRepository<CustomerDomain, Customer> customerRepo) 
+            : IFlow
     {
         public async Task RunAsync(Transaction transaction, CancellationToken cancellationToken = default)
         {

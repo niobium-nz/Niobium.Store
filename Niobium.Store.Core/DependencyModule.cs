@@ -2,9 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Niobium.Messaging;
 using Niobium.Platform.Finance;
-using Niobium.Store.Domains;
 using Niobium.Store.Options;
-using Niobium.Store.Payment;
 
 namespace Niobium.Store
 {
@@ -22,7 +20,7 @@ namespace Niobium.Store
             loaded = true;
 
             _ = builder.Services.Configure<StoreInvoicingOptions>(o => storeInvoicingOptions?.Invoke(o));
-            _ = builder.UsePlatformPayment<CustomerDepositRecorder, CustomerDomain, Customer>();
+            _ = builder.UsePlatformPayment();
             _ = builder.Services.RegisterDomainComponents(typeof(DependencyModule));
             _ = builder.Services.EnableExternalEvent<OrderCreatedEvent, Order>();
             _ = builder.Services.EnableExternalEvent<OrderSettledEvent, Order>();

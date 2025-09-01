@@ -160,31 +160,6 @@ stages:
         appSettings: |
           [
             {
-              "name": "StorageTableOptions:FullyQualifiedDomainName",
-              "value": "$(tableFQDN)",
-              "slotSetting": false
-            },
-            {
-              "name": "ServiceBusOptions:FullyQualifiedNamespace",
-              "value": "$(serviceBusFQDN)",
-              "slotSetting": false
-            },
-            {
-              "name": "ServiceBusTriggerOptions:FullyQualifiedNamespace",
-              "value": "$(serviceBusFQDN)",
-              "slotSetting": false
-            },
-            {
-              "name": "SubscribeQueueOptions:FullyQualifiedNamespace",
-              "value": "$(subscribeServiceBusFQDN)",
-              "slotSetting": false
-            },
-            {
-              "name": "InvoiceQueueOptions:FullyQualifiedNamespace",
-              "value": "$(invoiceServiceBusFQDN)",
-              "slotSetting": false
-            },
-            {
               "name": "PaymentServiceOptions:SecretAPIKey",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET/)",
               "slotSetting": true
@@ -228,6 +203,31 @@ stages:
               "name": "AzureWebJobs.OrderSettledEventConsumer.Disabled",
               "value": "true",
               "slotSetting": true
+            },
+            {
+              "name": "StorageTableOptions:FullyQualifiedDomainName",
+              "value": "$(tableFQDN)",
+              "slotSetting": false
+            },
+            {
+              "name": "ServiceBusOptions:FullyQualifiedNamespace",
+              "value": "$(serviceBusFQDN)",
+              "slotSetting": false
+            },
+            {
+              "name": "ServiceBusTriggerOptions:FullyQualifiedNamespace",
+              "value": "$(serviceBusFQDN)",
+              "slotSetting": false
+            },
+            {
+              "name": "SubscribeQueueOptions:FullyQualifiedNamespace",
+              "value": "$(subscribeServiceBusFQDN)",
+              "slotSetting": false
+            },
+            {
+              "name": "InvoiceQueueOptions:FullyQualifiedNamespace",
+              "value": "$(invoiceServiceBusFQDN)",
+              "slotSetting": false
             }
           ]
 
