@@ -170,6 +170,11 @@ stages:
               "slotSetting": false
             },
             {
+              "name": "ServiceBusTriggerOptions:FullyQualifiedNamespace",
+              "value": "$(serviceBusFQDN)",
+              "slotSetting": false
+            },
+            {
               "name": "SubscribeQueueOptions:FullyQualifiedNamespace",
               "value": "$(subscribeServiceBusFQDN)",
               "slotSetting": false

@@ -23,7 +23,7 @@ namespace Niobium.Store.Domains
 
         public async Task<Customer> CreateCustomerIfNotExistAsync(Customer customer, CancellationToken cancellationToken)
         {
-            var existingCustomer = await this.GetEntityAsync(cancellationToken);
+            var existingCustomer = await this.TryGetEntityAsync(cancellationToken);
             if (existingCustomer != null)
             {
                 this.Logger.LogInformation($"Customer {this.RowKey} already exists. No action taken.");
