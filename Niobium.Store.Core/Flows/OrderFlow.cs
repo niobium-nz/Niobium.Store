@@ -18,7 +18,7 @@ namespace Niobium.Store.Flows
             var order = await domain.TakeNew(request, quote, clientIP, cancellationToken);
             var response = OrderResponse.Map(order);
 
-            var chargeRequest = await domain.CreateChargeAsync(request.Tenant, clientIP, cancellationToken);
+            var chargeRequest = await domain.CreateChargeAsync(clientIP, cancellationToken);
             var chargeResult = await paymentService.Value.ChargeAsync(chargeRequest);
             if (chargeResult == null || !chargeResult.IsSuccess || chargeResult.Result?.Instruction == null)
             {

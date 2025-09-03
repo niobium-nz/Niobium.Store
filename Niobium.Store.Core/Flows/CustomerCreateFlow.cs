@@ -31,7 +31,7 @@ namespace Niobium.Store.Flows
             Currency = order.Currency,
             Email = order.Email,
             ID = order.Customer,
-            Tenant = Customer.BuildPartitionKey(order.Tenant),
+            Tenant = order.Tenant,
             ShippingAddressLine1 = order.ShippingAddressLine1,
             ShippingAddressLine2 = order.ShippingAddressLine2,
             ShippingCity = order.ShippingCity,

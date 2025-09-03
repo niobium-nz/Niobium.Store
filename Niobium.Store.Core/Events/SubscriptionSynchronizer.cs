@@ -21,7 +21,7 @@ namespace Niobium.Store.Events
                         Campaign = campaign,
                         FirstName = e.Order.Consignee,
                         ID = e.Order.GetID().ToString(),
-                        Tenant = e.Order.Tenant,
+                        Tenant = e.Order.Tenant.ToString(),
                         Track = e.Order.Track,
                     }
                 }, cancellationToken: cancellationToken);

@@ -12,8 +12,8 @@ namespace Niobium.Store.Payment
                 ? throw new InvalidOperationException("Transaction does not contain an user ID.")
                 : user;
 
-        public static string GetTenant(this Transaction transaction) => transaction == null || String.IsNullOrWhiteSpace(transaction.Tenant)
-                ? throw new InvalidOperationException("Transaction does not contain tenant info.")
-                : transaction.Tenant;
+        public static Guid GetTenant(this Transaction transaction) => transaction == null || !Guid.TryParse(transaction.Tenant, out var tenant)
+                ? throw new InvalidOperationException("Transaction does not contain tenant ID.")
+                : tenant;
     }
 }

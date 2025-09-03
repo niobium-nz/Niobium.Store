@@ -33,7 +33,7 @@ namespace Niobium.Store.Flows
             var valid = listingQuotes.ValidateConsistency();
             if (!valid)
             {
-                var error = $"Listings are not consistent on either currency or tax: {string.Join(',', request.Cart.Select(i => i.Listing))}";
+                var error = $"Listings are not consistent on either currency or tax: {String.Join(',', request.Cart.Select(i => i.Listing))}";
                 logger.LogError(error);
                 throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
@@ -57,7 +57,7 @@ namespace Niobium.Store.Flows
             };
             var amountSubjectToTax = result.SubTotal.Cents + result.ShippingCost.Cents - result.Discount.Cents;
             result.Tax = new TaxableAmount
-            { 
+            {
                 Amount = new Amount { Cents = amountSubjectToTax * tax.Rate / 10000, Currency = currency },
                 Tax = tax,
             };

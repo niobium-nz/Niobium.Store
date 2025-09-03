@@ -1,8 +1,6 @@
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.DependencyInjection;
 using Niobium.Messaging;
 using Niobium.Platform.Finance;
-using Niobium.Store.Options;
 
 namespace Niobium.Store
 {
@@ -10,7 +8,7 @@ namespace Niobium.Store
     {
         private static volatile bool loaded;
 
-        public static void AddCore(this IFunctionsWorkerApplicationBuilder builder, Action<StoreInvoicingOptions>? storeInvoicingOptions)
+        public static void AddCore(this IFunctionsWorkerApplicationBuilder builder)
         {
             if (loaded)
             {
@@ -19,7 +17,6 @@ namespace Niobium.Store
 
             loaded = true;
 
-            _ = builder.Services.Configure<StoreInvoicingOptions>(o => storeInvoicingOptions?.Invoke(o));
             _ = builder.UsePlatformPayment();
             _ = builder.Services.RegisterDomainComponents(typeof(DependencyModule));
             _ = builder.Services.EnableExternalEvent<OrderCreatedEvent, Order>();

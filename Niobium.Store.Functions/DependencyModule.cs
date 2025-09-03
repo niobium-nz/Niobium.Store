@@ -32,7 +32,9 @@ namespace Niobium.Store.Functions
             builder.AddDatabase();
             builder.AddMessaging();
             builder.AddCaptcha();
-            builder.AddCore(builder.Configuration.GetSection(nameof(StoreInvoicingOptions)).Bind);
+
+            _ = builder.Services.Configure<StoreOptions>(o => builder.Configuration.GetSection(nameof(StoreOptions)).Bind(o));
+            builder.AddCore();
 
             _ = builder.Services.AddMemoryCachedRepository<Listing>();
             _ = builder.Services.AddMemoryCachedRepository<ShippingOption>();

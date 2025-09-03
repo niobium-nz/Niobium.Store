@@ -6,7 +6,7 @@ namespace Niobium.Store
     public class Customer() : ITrackable
     {
         [EntityKey(EntityKeyKind.PartitionKey)]
-        public required string Tenant { get; set; }
+        public required Guid Tenant { get; set; }
 
         [EntityKey(EntityKeyKind.RowKey)]
         public required Guid ID { get; set; }
@@ -61,7 +61,7 @@ namespace Niobium.Store
 
         public required string BillingPostcode { get; set; }
 
-        public static string BuildPartitionKey(string tenant) => tenant.ToLowerInvariant().Trim();
+        public static string BuildPartitionKey(Guid tenant) => tenant.ToString();
 
         public static Guid ParseID(string partitionKey) => Guid.Parse(partitionKey);
 

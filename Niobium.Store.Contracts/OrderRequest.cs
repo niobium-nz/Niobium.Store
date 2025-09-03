@@ -73,8 +73,7 @@ namespace Niobium.Store
         [StringLength(10)]
         public required string BillingPostcode { get; set; }
 
-        [StringLength(20)]
-        public required string Tenant { get; set; }
+        public Guid Tenant { get; set; }
 
         public bool MarketingSubscription { get; set; }
 
@@ -161,9 +160,9 @@ namespace Niobium.Store
                 this.BillingCountry = country.Alpha2;
             }
 
-            if (!string.IsNullOrWhiteSpace(Track))
+            if (!String.IsNullOrWhiteSpace(this.Track))
             {
-                Track = Track.Trim();
+                this.Track = this.Track.Trim();
             }
         }
     }

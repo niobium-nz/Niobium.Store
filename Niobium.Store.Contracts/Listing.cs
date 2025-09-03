@@ -60,6 +60,6 @@ namespace Niobium.Store
         }
 
         public static string BuildFullID(string partitionKey, string rowKey)
-            => new StorageKey(partitionKey,  rowKey).ToString();
+            => new StorageKey(partitionKey, rowKey).ToString();
     }
 }

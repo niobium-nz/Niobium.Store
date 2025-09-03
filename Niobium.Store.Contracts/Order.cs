@@ -39,7 +39,7 @@ namespace Niobium.Store
 
         public string? Notes { get; set; }
 
-        public required string Tenant { get; set; }
+        public required Guid Tenant { get; set; }
 
         public required string Cart { get; set; }
 

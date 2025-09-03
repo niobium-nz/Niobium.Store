@@ -228,6 +228,11 @@ stages:
               "name": "InvoiceQueueOptions:FullyQualifiedNamespace",
               "value": "$(invoiceServiceBusFQDN)",
               "slotSetting": false
+            },
+            {
+              "name": "StoreOptions:InvoicingTenant",
+              "value": "95b52e52-dc79-4ac0-a53f-1acb10238888",
+              "slotSetting": false
             }
           ]
 

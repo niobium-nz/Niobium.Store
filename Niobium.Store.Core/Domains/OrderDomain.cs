@@ -10,7 +10,7 @@ namespace Niobium.Store.Domains
     public class OrderDomain(
         Lazy<IRepository<Order>> repository,
         IEnumerable<IDomainEventHandler<IDomain<Order>>> eventHandlers,
-        IOptions<StoreInvoicingOptions> options,
+        IOptions<StoreOptions> options,
         ILogger<OrderDomain> logger)
         : GenericDomain<Order>(repository, eventHandlers)
     {
@@ -99,7 +99,7 @@ namespace Niobium.Store.Domains
             return result;
         }
 
-        public async Task<ChargeRequest> CreateChargeAsync(string? source = null, string? clientIP = null, CancellationToken cancellationToken = default)
+        public async Task<ChargeRequest> CreateChargeAsync(string? clientIP = null, CancellationToken cancellationToken = default)
         {
             var entity = await this.GetEntityAsync(cancellationToken);
             return new ChargeRequest
@@ -108,7 +108,7 @@ namespace Niobium.Store.Domains
                 Target = entity.Customer.ToString(),
                 Channel = PaymentChannels.Cards,
                 Operation = PaymentOperationKind.Charge,
-                Source = source,
+                Tenant = entity.Tenant.ToString(),
                 Order = entity.GetID().ToString(),
                 Amount = entity.GrandTotal,
                 Currency = entity.Currency,
@@ -119,12 +119,13 @@ namespace Niobium.Store.Domains
         public async Task<IssueInvoiceCommand> IssueInvoiceAsync(CancellationToken cancellationToken = default)
         {
             var entity = await this.GetEntityAsync(cancellationToken);
-            var billerID = Guid.Parse(options.Value.Billers[entity.Tenant]);
             return new IssueInvoiceCommand
             {
+                ID = entity.GetFullID(),
                 InvoiceID = entity.GetID(),
+                Tenant = options.Value.InvoicingTenant,
                 BilleeID = entity.Customer,
-                BillerID = billerID,
+                BillerID = entity.Tenant,
                 BillingPeriodStartDay = DateTimeOffset.UtcNow,
                 DueBy = DateTimeOffset.UtcNow,
                 InvoiceCycle = (int)InvoiceCycle.Once,
@@ -142,7 +143,7 @@ namespace Niobium.Store.Domains
                     Email = entity.Email,
                     AddressLine1 = entity.BillingAddressLine1,
                     AddressLine2 = entity.BillingAddressLine2,
-                    Biller = billerID,
+                    Biller = entity.Tenant,
                     City = entity.BillingCity,
                     Culture = entity.Culture,
                     Currency = entity.Currency,

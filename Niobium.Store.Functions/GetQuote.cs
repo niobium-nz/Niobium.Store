@@ -16,8 +16,8 @@ public class GetQuote(QuoteFlow flow, IVisitorRiskAssessor assessor)
         [FromBody] QuoteRequest request,
         CancellationToken cancellationToken)
     {
-        var tenant = req.GetTenant();
-        if (String.IsNullOrWhiteSpace(tenant))
+        var referer = req.GetSourceHostname();
+        if (String.IsNullOrWhiteSpace(referer))
         {
             return new BadRequestObjectResult(new { Error = "Tenant is required." });
         }
@@ -28,7 +28,7 @@ public class GetQuote(QuoteFlow flow, IVisitorRiskAssessor assessor)
             return validationState.MakeResponse();
         }
 
-        var lowRisk = await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), tenant: tenant, cancellationToken: cancellationToken);
+        var lowRisk = await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), hostname: referer, cancellationToken: cancellationToken);
         if (!lowRisk)
         {
             return new UnauthorizedResult();
