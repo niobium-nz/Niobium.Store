@@ -79,6 +79,8 @@ namespace Niobium.Store
 
         public string? BillingAddressLine2 { get; set; }
 
+        public string? BillingSuburb { get; set; }
+
         public required string BillingCity { get; set; }
 
         public string? BillingState { get; set; }

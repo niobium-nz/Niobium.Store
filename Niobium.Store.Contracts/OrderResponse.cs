@@ -44,6 +44,7 @@ namespace Niobium.Store
             ShippingCountry = order.ShippingCountry,
             BillingAddressLine1 = order.BillingAddressLine1,
             BillingAddressLine2 = order.BillingAddressLine2,
+            BillingSuburb = order.BillingSuburb,
             BillingCity = order.BillingCity,
             BillingState = order.BillingState,
             BillingPostcode = order.BillingPostcode,

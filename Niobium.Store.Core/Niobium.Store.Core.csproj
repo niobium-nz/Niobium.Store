@@ -20,8 +20,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Niobium.Invoicing.Contracts" Version="1.0.63" />
-    <PackageReference Include="Niobium.Platform.Finance" Version="3.2.15" />
+    <PackageReference Include="Niobium.Invoicing.Contracts" Version="1.0.69" />
+    <PackageReference Include="Niobium.Platform.Finance" Version="3.2.16" />
     <PackageReference Include="Niobium.Notification.Contracts" Version="1.0.65" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
   </ItemGroup>
