@@ -5,6 +5,7 @@ using Niobium.Database.StorageTable;
 using Niobium.Invoicing;
 using Niobium.Messaging.ServiceBus;
 using Niobium.Notification;
+using Niobium.Platform;
 using Niobium.Platform.Captcha.ReCaptcha;
 using Niobium.Platform.Finance;
 using Niobium.Platform.Finance.Stripe;
@@ -27,6 +28,7 @@ namespace Niobium.Store.Functions
             }
 
             loaded = true;
+            bool isDevelopment = builder.Configuration.IsDevelopmentEnvironment();
 
             builder.AddFinance();
             builder.AddDatabase();
@@ -38,8 +40,9 @@ namespace Niobium.Store.Functions
 
             _ = builder.Services.AddMemoryCachedRepository<Listing>();
             _ = builder.Services.AddMemoryCachedRepository<ShippingOption>();
-            _ = builder.Services.AddMessagingBroker<SubscribeCommand>(builder.Configuration.GetSection(nameof(SubscribeQueueOptions)).Bind);
-            _ = builder.Services.AddMessagingBroker<IssueInvoiceCommand>(builder.Configuration.GetSection(nameof(InvoiceQueueOptions)).Bind);
+            _ = builder.Services.AddMessagingBroker<SubscribeCommand>(isDevelopment, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
+            _ = builder.Services.AddMessagingBroker<NotifyCommand>(isDevelopment, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
+            _ = builder.Services.AddMessagingBroker<IssueInvoiceCommand>(isDevelopment, builder.Configuration.GetSection(nameof(InvoiceQueueOptions)).Bind);
         }
     }
 }

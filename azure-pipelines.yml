@@ -20,8 +20,8 @@ variables:
   serviceBusNamespace: 'niobiumstoresb'
   orderCreateEventQueueName: 'ordercreatedevent'
   orderSettledEventQueueName: 'ordersettledevent'
-  subscribeServiceBusResourceGroup: 'niobium-emailnotification'
-  subscribeServiceBusNamespace: 'niobiumemailsb'
+  notificationServiceBusResourceGroup: 'niobium-emailnotification'
+  notificationServiceBusNamespace: 'niobiumemailsb'
   invoiceServiceBusResourceGroup: 'niobium-invoicing'
   invoiceServiceBusNamespace: 'niobiuminvoicingsb'
   enableStagingSlot: true
@@ -47,7 +47,6 @@ stages:
 
   - template: pipelines/jobs/FunctionAppInfrastructure.yml@devops
     parameters:
-      enabled: ${{ parameters.updateInfrastructure }}
       azureServiceConnection: $(serviceConnection)
       resourceGroupName: $(resourceGroupName)
       appName: $(appName)
@@ -93,7 +92,7 @@ stages:
         serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
-  - job: SubscribeRBAC
+  - job: NotificationRBAC
     dependsOn: 
       - Infrastructure
     condition: succeeded()
@@ -106,8 +105,8 @@ stages:
     - template: pipelines/steps/grantPermissionServiceBus.yml@devops
       parameters:
         azureServiceConnection: $(serviceConnection)
-        resourceGroupName: $(subscribeServiceBusResourceGroup)
-        serviceBusNamespaceName: $(subscribeServiceBusNamespace)
+        resourceGroupName: $(notificationServiceBusResourceGroup)
+        serviceBusNamespaceName: $(notificationServiceBusNamespace)
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: InvoiceRBAC
@@ -132,7 +131,7 @@ stages:
       - Infrastructure
       - Table
       - Messaging
-      - SubscribeRBAC
+      - NotificationRBAC
       - InvoiceRBAC
     condition: succeeded()
     pool:
@@ -141,7 +140,7 @@ stages:
       tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableFQDN']]
       keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
       serviceBusFQDN: $[dependencies.Messaging.outputs['newServiceBusProperties.fullyQualifiedNamespace']]
-      subscribeServiceBusFQDN: $[dependencies.SubscribeRBAC.outputs['serviceBusPermissionProperties.fullyQualifiedNamespace']]
+      notificationServiceBusFQDN: $[dependencies.NotificationRBAC.outputs['serviceBusPermissionProperties.fullyQualifiedNamespace']]
       invoiceServiceBusFQDN: $[dependencies.InvoiceRBAC.outputs['serviceBusPermissionProperties.fullyQualifiedNamespace']]
     steps:
     - checkout: none
@@ -220,8 +219,8 @@ stages:
               "slotSetting": false
             },
             {
-              "name": "SubscribeQueueOptions:FullyQualifiedNamespace",
-              "value": "$(subscribeServiceBusFQDN)",
+              "name": "NotificationQueueOptions:FullyQualifiedNamespace",
+              "value": "$(notificationServiceBusFQDN)",
               "slotSetting": false
             },
             {

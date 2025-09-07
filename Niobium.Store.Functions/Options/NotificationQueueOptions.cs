@@ -2,7 +2,7 @@ using Niobium.Messaging.ServiceBus;
 
 namespace Niobium.Store.Functions.Options
 {
-    internal class SubscribeQueueOptions : ServiceBusOptions
+    internal class NotificationQueueOptions : ServiceBusOptions
     {
     }
 }
