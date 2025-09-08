@@ -20,6 +20,8 @@ variables:
   serviceBusNamespace: 'niobiumstoresb'
   orderCreateEventQueueName: 'ordercreatedevent'
   orderSettledEventQueueName: 'ordersettledevent'
+  fulfillOrderCommandQueueName: 'fulfillordercommand'
+  updateTrackingCommandQueueName: 'updatetrackingcommand'
   notificationServiceBusResourceGroup: 'niobium-emailnotification'
   notificationServiceBusNamespace: 'niobiumemailsb'
   invoiceServiceBusResourceGroup: 'niobium-invoicing'
@@ -89,7 +91,7 @@ stages:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
         serviceBusNamespaceName: $(serviceBusNamespace)
-        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName)]
+        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(fulfillOrderCommandQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: NotificationRBAC
