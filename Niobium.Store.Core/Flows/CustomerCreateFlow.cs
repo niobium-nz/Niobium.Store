@@ -2,10 +2,20 @@ using Niobium.Store.Domains;
 
 namespace Niobium.Store.Flows
 {
-    internal class CustomerCreateFlow(IDomainRepository<CustomerDomain, Customer> repo) : IFlow
+    internal class CustomerCreateFlow(
+        IDomainRepository<CustomerDomain, Customer> repo,
+        IRepository<Ownership> ownership) : IFlow
     {
         public async Task RunAsync(Order order, CancellationToken cancellationToken = default)
-            => await this.RunAsync(BuildCustomer(order), cancellationToken);
+        {
+            await this.RunAsync(BuildCustomer(order), cancellationToken);
+            await ownership.CreateAsync(new Ownership
+            {
+                Email = order.Email,
+                Order = order.GetID(),
+                Tenant = order.Tenant,
+            }, cancellationToken: cancellationToken);
+        }
 
         public async Task RunAsync(Customer customer, CancellationToken cancellationToken = default)
         {

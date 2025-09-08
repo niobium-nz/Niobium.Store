@@ -15,6 +15,5 @@ namespace Niobium.Store
         public string? ShippingState { get; set; }
 
         public required Country ShippingCountry { get; set; }
-
     }
 }
