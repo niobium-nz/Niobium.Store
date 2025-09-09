@@ -123,5 +123,8 @@ namespace Niobium.Store
         public static string BuildPartitionKey(Guid customer) => customer.ToString();
 
         public static string BuildRowKey(long id) => id.ToReverseUnixTimestamp();
+
+        // Use order ID + 1 as the transaction ID for settlement as convention.
+        public static long BuildTransactionID(long order) => order + 1;
     }
 }

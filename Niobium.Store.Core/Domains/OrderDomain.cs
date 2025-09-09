@@ -1,3 +1,5 @@
+using System.Net;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Niobium.Finance;
@@ -30,8 +32,16 @@ namespace Niobium.Store.Domains
             newOrder.SetCart(request.Cart);
 
             _ = this.Initialize(newOrder);
-            await this.SaveAsync(cancellationToken: cancellationToken);
-            return newOrder;
+            try
+            {
+                await this.SaveAsync(cancellationToken: cancellationToken);
+                return newOrder;
+            }
+            catch (RequestFailedException e) when (e.Status == (int)HttpStatusCode.Conflict)
+            {
+                logger.LogWarning($"Order {newOrder.GetFullID()} already exists (detected during creation). Fetching existing record.");
+                return await this.GetEntityAsync(cancellationToken);
+            }
         }
 
         public async Task<Amount> FigureDueAsync(CancellationToken cancellationToken)
@@ -92,7 +102,7 @@ namespace Niobium.Store.Domains
                 }
             }
 
-            await this.SaveAsync(cancellationToken: cancellationToken);
+            await this.SaveAsync(force: true, cancellationToken: cancellationToken);
             var result = entity.Settled >= entity.GrandTotal;
             var fullID = new StorageKey(this.PartitionKey, this.RowKey);
             logger.LogInformation($"Order {fullID} settled {result} by transaction: {transaction.GetID()}");
@@ -101,6 +111,7 @@ namespace Niobium.Store.Domains
 
         public async Task<ChargeRequest> CreateChargeAsync(string? clientIP = null, CancellationToken cancellationToken = default)
         {
+            var due = await this.FigureDueAsync(cancellationToken);
             var entity = await this.GetEntityAsync(cancellationToken);
             return new ChargeRequest
             {
@@ -110,8 +121,8 @@ namespace Niobium.Store.Domains
                 Operation = PaymentOperationKind.Charge,
                 Tenant = entity.Tenant.ToString(),
                 Order = entity.GetID().ToString(),
-                Amount = entity.GrandTotal,
-                Currency = entity.Currency,
+                Amount = due.Cents,
+                Currency = due.Currency,
                 IP = clientIP,
             };
         }

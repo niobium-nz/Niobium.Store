@@ -1,3 +1,5 @@
+using System.Net;
+using Azure;
 using Microsoft.Extensions.Logging;
 using Niobium.Finance;
 using Niobium.Platform;
@@ -23,21 +25,22 @@ namespace Niobium.Store.Domains
 
         public async Task<Customer> CreateCustomerIfNotExistAsync(Customer customer, CancellationToken cancellationToken)
         {
-            var existingCustomer = await this.TryGetEntityAsync(cancellationToken);
-            if (existingCustomer != null)
+            try
             {
-                this.Logger.LogInformation($"Customer {this.RowKey} already exists. No action taken.");
-                return existingCustomer;
+                var result = await this.Repository.CreateAsync(customer, cancellationToken: cancellationToken);
+                await this.InitializeBalanceAsync(cancellationToken);
+                await this.InitializeDeltaAsync(cancellationToken);
+
+                return result;
             }
-
-            var result = await this.Repository.CreateAsync(customer, cancellationToken: cancellationToken);
-            await this.InitializeBalanceAsync(cancellationToken);
-            await this.InitializeDeltaAsync(cancellationToken);
-
-            return result;
+            catch (RequestFailedException e) when (e.Status == (int)HttpStatusCode.Conflict)
+            {
+                this.Logger.LogWarning($"Customer {this.RowKey} already exists (detected during creation). Fetching existing record.");
+                return await this.GetEntityAsync(cancellationToken);
+            }
         }
 
-        public async Task<Transaction?> BeginSettlementAsync(Amount due, CancellationToken cancellationToken = default)
+        public async Task<Transaction?> BeginSettlementAsync(long order, Amount due, CancellationToken cancellationToken = default)
         {
             this.CheckInitialized();
             var fullID = new StorageKey(this.PartitionKey, this.RowKey);
@@ -52,8 +55,24 @@ namespace Niobium.Store.Domains
             _ = await this.FreezeAsync(due.Cents, cancellationToken);
             this.Logger.LogInformation($"Settling order {fullID} with amount {due} , current balance available:  {balance.Available}");
 
-            var transactions = await this.MakeTransactionAsync(-due.Cents, (int)TransactionReason.Spend, OrderSettlementRemark, fullID.ToString());
-            return transactions.Single();
+            var settlementTransactionID = Order.BuildTransactionID(order);
+
+            try
+            {
+                var transactions = await this.MakeTransactionAsync(
+                    -due.Cents,
+                    (int)TransactionReason.Spend,
+                    OrderSettlementRemark,
+                    reference: fullID.ToString(),
+                    id: settlementTransactionID.ToString());
+                return transactions.Single();
+            }
+            catch (RequestFailedException e) when (e.Status == (int)HttpStatusCode.Conflict)
+            {
+                // Transaction ID conflict, likely due to retry. Ignore settlement.
+                this.Logger.LogWarning($"Potential replay detected: transaction ID {settlementTransactionID} conflict for settlement of order {fullID}.");
+                return null;
+            }
         }
 
         public async Task FinishSettlementAsync(Amount due, CancellationToken cancellationToken = default) => await this.UnfreezeAsync(due.Cents, cancellationToken);

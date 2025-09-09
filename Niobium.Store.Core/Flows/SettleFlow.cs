@@ -36,7 +36,7 @@ namespace Niobium.Store.Flows
                 Customer.BuildRowKey(customerID),
                 cancellationToken: cancellationToken);
 
-            var customerTransaction = await customerDomain.BeginSettlementAsync(due, cancellationToken);
+            var customerTransaction = await customerDomain.BeginSettlementAsync(orderID, due, cancellationToken);
             if (customerTransaction != null)
             {
                 try
