@@ -1,19 +1,14 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Options;
 using Niobium.Platform;
 using Niobium.Platform.Captcha.ReCaptcha;
 using Niobium.Store.Flows;
-using Niobium.Store.Options;
 using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribute;
 
 namespace Niobium.Store.Functions;
 
-public class MakeOrder(
-    OrderFlow flow,
-    IVisitorRiskAssessor assessor,
-    IOptions<StoreOptions> options)
+public class MakeOrder(OrderFlow flow, IVisitorRiskAssessor assessor)
 {
     [Function(nameof(MakeOrder))]
     public async Task<IActionResult> Run(
@@ -22,13 +17,10 @@ public class MakeOrder(
         CancellationToken cancellationToken)
     {
         var referer = req.GetSourceHostname();
-        if (String.IsNullOrWhiteSpace(referer)
-            || !options.Value.Tenants.TryGetValue(referer, out var tenant)
-            || tenant == Guid.Empty)
+        if (String.IsNullOrWhiteSpace(referer) || request.Tenant == Guid.Empty)
         {
             return new BadRequestObjectResult(new { Error = "Tenant is required." });
         }
-        request.Tenant = tenant;
 
         var valid = request.TryValidate(out var validationState);
         if (!valid || !validationState.IsValid)
