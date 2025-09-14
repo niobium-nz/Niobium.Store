@@ -17,8 +17,6 @@ namespace Niobium.Store.Flows
                 ShippingOption.BuildRowKey(request.Shipping),
                 cancellationToken: cancellationToken);
 
-            var shippingQuote = await shipping.QuoteAsync(request, cancellationToken);
-
             var listingQuotes = new List<PricedCartItem>();
             foreach (var item in request.Cart)
             {
@@ -30,7 +28,11 @@ namespace Niobium.Store.Flows
                 listingQuotes.Add(listingQuote);
             }
 
-            var listingCurrency = listingQuotes.First().Currency;
+            var baseline = listingQuotes.First();
+            var listingCurrency = baseline.Currency;
+            var listingTax = baseline.Tax;
+            var shippingQuote = await shipping.QuoteAsync(request, listingTax, cancellationToken);
+
             if (shippingQuote.Amount.Currency != listingCurrency)
             {
                 var error = $"Shipping {request.Shipping} and cart are not consistent on currency: {shippingQuote.Amount.Currency} vs {listingCurrency}";
@@ -38,7 +40,6 @@ namespace Niobium.Store.Flows
                 throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
-            var listingTax = listingQuotes.First().Tax;
             if (shippingQuote.Tax != listingTax)
             {
                 var error = $"Shipping {request.Shipping} and cart are not consistent on tax: {shippingQuote.Tax} vs {listingTax}";
