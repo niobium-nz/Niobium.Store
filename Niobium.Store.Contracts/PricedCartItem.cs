@@ -4,13 +4,13 @@ namespace Niobium.Store
 {
     public class PricedCartItem : CartItem
     {
-        public required Amount Unit { get; set; }
+        public required long Unit { get; set; }
 
-        public required Amount Was { get; set; }
+        public required long Was { get; set; }
 
-        public required Amount Now { get; set; }
+        public required long Now { get; set; }
 
-        public required Amount Discount { get; set; }
+        public required long Discount { get; set; }
 
         public required Tax Tax { get; set; }
 

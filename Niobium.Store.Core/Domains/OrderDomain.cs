@@ -19,16 +19,16 @@ namespace Niobium.Store.Domains
         public async Task<Order> TakeNew(OrderRequest request, QuoteResponse quote, string? clientIP, CancellationToken cancellationToken = default)
         {
             var newOrder = CreateNewOrder(request);
-            newOrder.ShippingCost = quote.ShippingCost.Cents;
-            newOrder.TaxKind = (int)quote.Tax.Tax.Kind;
-            newOrder.TaxRate = quote.Tax.Tax.Rate;
+            newOrder.ShippingCost = quote.ShippingCost;
+            newOrder.TaxKind = (int)quote.TaxInfo.Kind;
+            newOrder.TaxRate = quote.TaxInfo.Rate;
             newOrder.IP = clientIP;
             newOrder.Settled = 0;
-            newOrder.Currency = quote.GrandTotal.Currency;
-            newOrder.Discount = quote.Discount.Cents;
-            newOrder.SubTotal = quote.SubTotal.Cents;
-            newOrder.Tax = quote.Tax.Amount.Cents;
-            newOrder.GrandTotal = quote.GrandTotal.Cents;
+            newOrder.Currency = quote.Currency;
+            newOrder.Discount = quote.Discount;
+            newOrder.SubTotal = quote.SubTotal;
+            newOrder.Tax = quote.Tax;
+            newOrder.GrandTotal = quote.GrandTotal;
             newOrder.SetCart(request.Cart);
 
             _ = this.Initialize(newOrder);

@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Niobium.Finance;
-
 namespace Niobium.Store.Domains
 {
     public class PromotionDomain(
@@ -32,8 +25,12 @@ namespace Niobium.Store.Domains
                     }
 
                     item.Was = item.Now;
-                    item.Now = new Amount { Cents = item.Unit.Cents / (item.Quantity - discountQty), Currency = item.Unit.Currency };
-                    item.Discount = new Amount { Cents = item.Was.Cents - item.Now.Cents, Currency = item.Unit.Currency };
+                    item.Now = item.Unit * (item.Quantity - discountQty);
+                    item.Discount = item.Was - item.Now;
+                    if (item.Discount < 0)
+                    {
+                        item.Discount = 0;
+                    }
                     item.DiscountDescription = $"Buy 1 Get 1 Free";
                 }
             }
@@ -42,7 +39,7 @@ namespace Niobium.Store.Domains
                 var qualifiedItems = quote.Quote.Where(i => i.Listing == PromotionalListing).ToList();
                 foreach (var item in qualifiedItems)
                 {
-                    var discountQty = (item.Quantity / 5) * 3;
+                    var discountQty = item.Quantity / 5 * 3;
                     if (discountQty < 0)
                     {
                         discountQty = 0;
@@ -53,8 +50,12 @@ namespace Niobium.Store.Domains
                     }
 
                     item.Was = item.Now;
-                    item.Now = new Amount { Cents = item.Unit.Cents / (item.Quantity - discountQty), Currency = item.Unit.Currency };
-                    item.Discount = new Amount { Cents = item.Was.Cents - item.Now.Cents, Currency = item.Unit.Currency };
+                    item.Now = item.Unit * (item.Quantity - discountQty);
+                    item.Discount = item.Was - item.Now;
+                    if (item.Discount < 0)
+                    {
+                        item.Discount = 0;
+                    }
                     item.DiscountDescription = $"Buy 2 Get 3 Free";
                 }
             }

@@ -35,17 +35,17 @@ namespace Niobium.Store.Domains
         public async Task<PricedCartItem> QuoteAsync(int quantity, CancellationToken cancellationToken)
         {
             var entity = await this.GetEntityAsync(cancellationToken);
-            var amount = new Amount { Cents = entity.Price * quantity, Currency = entity.Currency };
+            var amount = entity.Price * quantity;
             return new PricedCartItem
             {
                 Listing = entity.ID,
                 Option = entity.Option,
                 Quantity = quantity,
-                Unit = new Amount { Cents = entity.Price, Currency = entity.Currency },
+                Unit = entity.Price,
                 Was = amount,
                 Now = amount,
                 Tax = new Tax(entity.TaxRate, (TaxKind)entity.TaxKind),
-                Discount = Amount.Zero,
+                Discount = 0,
                 Currency = entity.Currency,
             };
         }

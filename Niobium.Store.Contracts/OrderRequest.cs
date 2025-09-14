@@ -87,7 +87,7 @@ namespace Niobium.Store
             }
 
             if (this.Timestamp <= 0
-                || DateTimeOffset.UtcNow - DateTimeOffset.FromUnixTimeMilliseconds(this.Timestamp) > TimeSpan.FromMinutes(20) 
+                || DateTimeOffset.UtcNow - DateTimeOffset.FromUnixTimeMilliseconds(this.Timestamp) > TimeSpan.FromMinutes(20)
                 || DateTimeOffset.FromUnixTimeMilliseconds(this.Timestamp) - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(20))
             {
                 yield return new ValidationResult($"Invalid order time on the order: {this.ID}", [nameof(this.Cart)]);
@@ -111,19 +111,19 @@ namespace Niobium.Store
             //TODO (whan) Postcode -> validate according to specific country
 
             this.ShippingAddressLine1 = culture.ToTitleCase(this.ShippingAddressLine1.Trim());
-            if (this.ShippingAddressLine2 != null)
+            if (!String.IsNullOrWhiteSpace(this.ShippingAddressLine2))
             {
                 this.ShippingAddressLine2 = culture.ToTitleCase(this.ShippingAddressLine2.Trim());
             }
 
-            if (this.ShippingSuburb != null)
+            if (!String.IsNullOrWhiteSpace(this.ShippingSuburb))
             {
                 this.ShippingSuburb = culture.ToTitleCase(this.ShippingSuburb.Trim());
             }
 
             this.ShippingCity = culture.ToTitleCase(this.ShippingCity.Trim());
 
-            if (this.ShippingState != null)
+            if (!String.IsNullOrWhiteSpace(this.ShippingState))
             {
                 this.ShippingState = culture.ToTitleCase(this.ShippingState.Trim());
             }
@@ -131,23 +131,23 @@ namespace Niobium.Store
             this.ShippingPostcode = this.ShippingPostcode.Trim();
             this.BillingName = culture.ToTitleCase(this.BillingName.Trim());
 
-            if (this.BillingBusiness != null)
+            if (!String.IsNullOrWhiteSpace(this.BillingBusiness))
             {
                 this.BillingBusiness = culture.ToTitleCase(this.BillingBusiness.Trim());
             }
 
             this.BillingAddressLine1 = culture.ToTitleCase(this.BillingAddressLine1.Trim());
-            if (this.BillingAddressLine2 != null)
+            if (!String.IsNullOrWhiteSpace(this.BillingAddressLine2))
             {
                 this.BillingAddressLine2 = culture.ToTitleCase(this.BillingAddressLine2.Trim());
             }
-            if (this.BillingSuburb != null)
+            if (!String.IsNullOrWhiteSpace(this.BillingSuburb))
             {
                 this.BillingSuburb = culture.ToTitleCase(this.BillingSuburb.Trim());
             }
             this.BillingCity = culture.ToTitleCase(this.BillingCity.Trim());
 
-            if (this.BillingState != null)
+            if (!String.IsNullOrWhiteSpace(this.BillingState))
             {
                 this.BillingState = culture.ToTitleCase(this.BillingState.Trim());
             }
