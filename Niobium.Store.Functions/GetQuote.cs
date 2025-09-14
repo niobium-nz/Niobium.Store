@@ -17,7 +17,7 @@ public class GetQuote(QuoteFlow flow, IVisitorRiskAssessor assessor)
         CancellationToken cancellationToken)
     {
         var referer = req.GetSourceHostname();
-        if (String.IsNullOrWhiteSpace(referer))
+        if (String.IsNullOrWhiteSpace(referer) || request.Tenant == Guid.Empty)
         {
             return new BadRequestObjectResult(new { Error = "Tenant is required." });
         }

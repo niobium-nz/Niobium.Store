@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Niobium.Finance;
 using Niobium.Store.Domains;
 
 namespace Niobium.Store.Flows
@@ -7,6 +6,7 @@ namespace Niobium.Store.Flows
     public class QuoteFlow(
         IDomainRepository<ShippingOptionDomain, ShippingOption> shippingRepo,
         IDomainRepository<ListingDomain, Listing> listingRepo,
+        IDomainRepository<PromotionDomain, Promotion> promotionRepo,
         ILogger<QuoteFlow> logger)
         : IFlow
     {
@@ -19,7 +19,7 @@ namespace Niobium.Store.Flows
 
             var shippingQuote = await shipping.QuoteAsync(request, cancellationToken);
 
-            var listingQuotes = new List<TaxableAmount>();
+            var listingQuotes = new List<PricedCartItem>();
             foreach (var item in request.Cart)
             {
                 var listing = await listingRepo.GetAsync(
@@ -30,38 +30,23 @@ namespace Niobium.Store.Flows
                 listingQuotes.Add(listingQuote);
             }
 
-            var valid = listingQuotes.ValidateConsistency();
-            if (!valid)
+            var listingCurrency = listingQuotes.First().Currency;
+            if (shippingQuote.Amount.Currency != listingCurrency)
             {
-                var error = $"Listings are not consistent on either currency or tax: {String.Join(',', request.Cart.Select(i => i.Listing))}";
+                var error = $"Shipping {request.Shipping} and cart are not consistent on currency: {shippingQuote.Amount.Currency} vs {listingCurrency}";
                 logger.LogError(error);
                 throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
-            var baseline = listingQuotes.First();
-            var currency = baseline.Amount.Currency;
-            var tax = baseline.Tax;
-
-            if (shippingQuote.Amount.Currency != currency)
+            var result = new QuoteResponse(request, listingQuotes, shippingQuote);
+            if (!String.IsNullOrWhiteSpace(request.Coupon))
             {
-                var error = $"Shipping {request.Shipping} and cart are not consistent on currency: {shippingQuote.Amount.Currency} vs {currency}";
-                logger.LogError(error);
-                throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
+                var promotion = new Promotion { Tenant = request.Tenant, Code = request.Coupon.Trim() };
+                var promoDomain = await promotionRepo.GetAsync(promotion, cancellationToken: cancellationToken);
+                await promoDomain.ApplyAsync(result, cancellationToken);
             }
 
-            var result = new QuoteResponse(request)
-            {
-                Discount = new Amount { Cents = 0, Currency = currency }, // Assuming no discount for simplicity, can be modified to apply discounts if needed.
-                SubTotal = new Amount { Cents = listingQuotes.Sum(x => x.Amount.Cents), Currency = currency },
-                ShippingCost = shippingQuote.Amount,
-            };
-            var amountSubjectToTax = result.SubTotal.Cents + result.ShippingCost.Cents - result.Discount.Cents;
-            result.Tax = new TaxableAmount
-            {
-                Amount = new Amount { Cents = amountSubjectToTax * tax.Rate / 10000, Currency = currency },
-                Tax = tax,
-            };
-            result.GrandTotal = new Amount { Cents = amountSubjectToTax + result.Tax.Amount.Cents, Currency = currency };
+            result.Update();
             return result;
         }
     }

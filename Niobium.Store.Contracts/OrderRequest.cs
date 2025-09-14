@@ -73,8 +73,6 @@ namespace Niobium.Store
         [StringLength(10)]
         public required string BillingPostcode { get; set; }
 
-        public Guid Tenant { get; set; }
-
         public bool MarketingSubscription { get; set; }
 
         [StringLength(10)]

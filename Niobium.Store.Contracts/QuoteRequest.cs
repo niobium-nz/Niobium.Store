@@ -7,6 +7,8 @@ namespace Niobium.Store
         [Required]
         public required Guid ID { get; set; }
 
+        public Guid Tenant { get; set; }
+
         [Required]
         public required List<CartItem> Cart { get; set; } = [];
 

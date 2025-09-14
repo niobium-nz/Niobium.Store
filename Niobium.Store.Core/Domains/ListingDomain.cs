@@ -32,13 +32,21 @@ namespace Niobium.Store.Domains
             };
         }
 
-        public async Task<TaxableAmount> QuoteAsync(int quantity, CancellationToken cancellationToken)
+        public async Task<PricedCartItem> QuoteAsync(int quantity, CancellationToken cancellationToken)
         {
             var entity = await this.GetEntityAsync(cancellationToken);
-            return new TaxableAmount
+            var amount = new Amount { Cents = entity.Price * quantity, Currency = entity.Currency };
+            return new PricedCartItem
             {
-                Amount = new Amount { Cents = entity.Price * quantity, Currency = entity.Currency },
+                Listing = entity.ID,
+                Option = entity.Option,
+                Quantity = quantity,
+                Unit = new Amount { Cents = entity.Price, Currency = entity.Currency },
+                Was = amount,
+                Now = amount,
                 Tax = new Tax(entity.TaxRate, (TaxKind)entity.TaxKind),
+                Discount = Amount.Zero,
+                Currency = entity.Currency,
             };
         }
     }
