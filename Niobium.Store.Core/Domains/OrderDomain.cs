@@ -173,7 +173,7 @@ namespace Niobium.Store.Domains
             new()
             {
                 Customer = request.ID,
-                Created = DateTimeOffsetExtensions.FromReverseUnixTimeMilliseconds(request.Timestamp),
+                Created = DateTimeOffset.FromUnixTimeMilliseconds(request.Timestamp),
                 Status = (int)OrderStatus.Created,
                 ShippingStatus = (int)ShippingStatus.NotApplicable,
 

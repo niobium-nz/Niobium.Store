@@ -88,7 +88,9 @@ namespace Niobium.Store
                 yield return baseResult;
             }
 
-            if (this.Timestamp <= 0 || DateTimeOffset.UtcNow - DateTimeOffsetExtensions.FromReverseUnixTimeMilliseconds(this.Timestamp) > TimeSpan.FromMinutes(20))
+            if (this.Timestamp <= 0
+                || DateTimeOffset.UtcNow - DateTimeOffset.FromUnixTimeMilliseconds(this.Timestamp) > TimeSpan.FromMinutes(20) 
+                || DateTimeOffset.FromUnixTimeMilliseconds(this.Timestamp) - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(20))
             {
                 yield return new ValidationResult($"Invalid order time on the order: {this.ID}", [nameof(this.Cart)]);
             }
