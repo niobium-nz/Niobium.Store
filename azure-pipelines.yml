@@ -91,7 +91,7 @@ stages:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
         serviceBusNamespaceName: $(serviceBusNamespace)
-        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(fulfillOrderCommandQueueName)]
+        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(fulfillOrderCommandQueueName), $(updateTrackingCommandQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalId)
 
   - job: NotificationRBAC
