@@ -10,6 +10,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
 		azure-pipelines.yml = azure-pipelines.yml
+		assets\quote.js = assets\quote.js
+		Niobium.Store.IntegrationTests\test\store.e2e.test.js = Niobium.Store.IntegrationTests\test\store.e2e.test.js
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Niobium.Store.Core", "Niobium.Store.Core\Niobium.Store.Core.csproj", "{BAECFCE2-A90A-4291-8B09-703F41E6EAE7}"
