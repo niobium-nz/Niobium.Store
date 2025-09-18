@@ -28,7 +28,7 @@ namespace Niobium.Store.Functions
             }
 
             loaded = true;
-            bool isDevelopment = builder.Configuration.IsDevelopmentEnvironment();
+            var isDevelopment = builder.Configuration.IsDevelopmentEnvironment();
 
             builder.AddFinance();
             builder.AddDatabase();
@@ -43,6 +43,12 @@ namespace Niobium.Store.Functions
             _ = builder.Services.AddMessagingBroker<SubscribeCommand>(isDevelopment, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
             _ = builder.Services.AddMessagingBroker<NotifyCommand>(isDevelopment, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
             _ = builder.Services.AddMessagingBroker<IssueInvoiceCommand>(isDevelopment, builder.Configuration.GetSection(nameof(InvoiceQueueOptions)).Bind);
+            _ = builder.Services.AddTransient<IRepository<QuantifiedListing>>(sp =>
+            {
+                var repo = sp.GetRequiredService<CloudTableRepository<QuantifiedListing>>();
+                repo.TableName = nameof(Listing);
+                return repo;
+            });
         }
     }
 }
