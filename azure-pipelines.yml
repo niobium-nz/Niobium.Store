@@ -2,31 +2,30 @@ name: '1.0$(Rev:.r)'
 trigger:
 - master
 
-parameters:
-- name: updateInfrastructure
-  type: boolean
-  default: false
-  displayName: Update Infrastructure
-  values:
-    - true
-    - false
-
 variables:
   buildAgentVmImage: 'windows-latest'
   serviceConnection: 'niobium-store'
   resourceGroupName: 'niobium-store'
   appName: 'niobiumstoreFunc'
-  tableDB: 'niobiumstoredb'
-  serviceBusNamespace: 'niobiumstoresb'
+
   orderCreateEventQueueName: 'ordercreatedevent'
   orderSettledEventQueueName: 'ordersettledevent'
   fulfillOrderCommandQueueName: 'fulfillordercommand'
   updateTrackingCommandQueueName: 'updatetrackingcommand'
-  notificationServiceBusResourceGroup: 'niobium-emailnotification'
-  notificationServiceBusNamespace: 'niobiumemailsb'
-  invoiceServiceBusResourceGroup: 'niobium-invoicing'
-  invoiceServiceBusNamespace: 'niobiuminvoicingsb'
+  invoiceServiceBusResourceGroup: 'niobium-invoicing' 
+  notificationServiceBusResourceGroup: 'niobium-ntfy'
   enableStagingSlot: true
+  
+  tableDB: 'niobiumstoredb'
+  serviceBusNamespace: 'niobiumstoresb'  
+  notificationServiceBusNamespace: 'niobiumntfysb'
+  invoiceServiceBusNamespace: 'niobiuminvoicingsb'
+
+  tableDBStaging: 'niobiumstoredbstaging'
+  serviceBusNamespaceStaging: 'niobiumstoresbstaging'  
+  notificationServiceBusNamespaceStaging: 'niobiumntfysbstaging'
+  invoiceServiceBusNamespaceStaging: 'niobiuminvoicingsb'
+
 
 pool:
   vmImage: $(buildAgentVmImage)
@@ -66,6 +65,7 @@ stages:
       vmImage: $(buildAgentVmImage)
     variables:
       functionAppPrincipalId: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalId']]
+      functionAppPrincipalIdStaging: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalIdStaging']]
     steps:
     - checkout: devops
     - template: pipelines/steps/newStorageAccount.yml@devops
@@ -75,6 +75,16 @@ stages:
         storageAccountName: $(tableDB)
         contributorPrincipalId: $(functionAppPrincipalId)
         allowedOrigins: '*'
+        outputVariableName: 'newStorageAccountProperties'
+    - template: pipelines/steps/newStorageAccount.yml@devops
+      parameters:
+        switch: ${{ variables.enableStagingSlot }}
+        azureServiceConnection: $(serviceConnection)
+        resourceGroupName: $(resourceGroupName)
+        storageAccountName: $(tableDBStaging)
+        contributorPrincipalId: $(functionAppPrincipalIdStaging)
+        allowedOrigins: '*'
+        outputVariableName: 'newStorageAccountPropertiesStaging'
 
   - job: Messaging
     dependsOn: 
@@ -84,6 +94,7 @@ stages:
       vmImage: $(buildAgentVmImage)
     variables:
       functionAppPrincipalId: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalId']]
+      functionAppPrincipalIdStaging: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalIdStaging']]
     steps:
     - checkout: devops
     - template: pipelines/steps/newServiceBus.yml@devops
@@ -93,6 +104,16 @@ stages:
         serviceBusNamespaceName: $(serviceBusNamespace)
         serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(fulfillOrderCommandQueueName), $(updateTrackingCommandQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalId)
+        outputVariableName: 'newServiceBusProperties'
+    - template: pipelines/steps/newServiceBus.yml@devops
+      parameters:
+        switch: ${{ variables.enableStagingSlot }}
+        azureServiceConnection: $(serviceConnection)
+        resourceGroupName: $(resourceGroupName)
+        serviceBusNamespaceName: $(serviceBusNamespaceStaging)
+        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(fulfillOrderCommandQueueName), $(updateTrackingCommandQueueName)]
+        dataOwnerPrincipalId: $(functionAppPrincipalIdStaging)
+        outputVariableName: 'newServiceBusPropertiesStaging'
 
   - job: NotificationRBAC
     dependsOn: 
@@ -102,6 +123,7 @@ stages:
       vmImage: $(buildAgentVmImage)
     variables:
       functionAppPrincipalId: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalId']]
+      functionAppPrincipalIdStaging: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalIdStaging']]
     steps:
     - checkout: devops
     - template: pipelines/steps/grantPermissionServiceBus.yml@devops
@@ -110,6 +132,15 @@ stages:
         resourceGroupName: $(notificationServiceBusResourceGroup)
         serviceBusNamespaceName: $(notificationServiceBusNamespace)
         dataOwnerPrincipalId: $(functionAppPrincipalId)
+        outputVariableName: 'serviceBusPermissionProperties'
+    - template: pipelines/steps/grantPermissionServiceBus.yml@devops
+      parameters:
+        switch: ${{ variables.enableStagingSlot }}
+        azureServiceConnection: $(serviceConnection)
+        resourceGroupName: $(notificationServiceBusResourceGroup)
+        serviceBusNamespaceName: $(notificationServiceBusNamespaceStaging)
+        dataOwnerPrincipalId: $(functionAppPrincipalIdStaging)
+        outputVariableName: 'serviceBusPermissionPropertiesStaging'
 
   - job: InvoiceRBAC
     dependsOn: 
@@ -127,6 +158,15 @@ stages:
         resourceGroupName: $(invoiceServiceBusResourceGroup)
         serviceBusNamespaceName: $(invoiceServiceBusNamespace)
         dataOwnerPrincipalId: $(functionAppPrincipalId)
+        outputVariableName: 'serviceBusPermissionProperties'
+    - template: pipelines/steps/grantPermissionServiceBus.yml@devops
+      parameters:
+        switch: ${{ variables.enableStagingSlot }}
+        azureServiceConnection: $(serviceConnection)
+        resourceGroupName: $(invoiceServiceBusResourceGroup)
+        serviceBusNamespaceName: $(invoiceServiceBusNamespaceStaging)
+        dataOwnerPrincipalId: $(functionAppPrincipalIdStaging)
+        outputVariableName: 'serviceBusPermissionPropertiesStaging'
 
   - job: Configuration
     dependsOn:
@@ -139,11 +179,15 @@ stages:
     pool:
       vmImage: $(buildAgentVmImage)
     variables:
-      tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableFQDN']]
       keyVaultUrl: $[dependencies.Infrastructure.outputs['infrastructureOutputs.keyVaultUrl']]
+      tableFQDN: $[dependencies.Table.outputs['newStorageAccountProperties.tableFQDN']]
       serviceBusFQDN: $[dependencies.Messaging.outputs['newServiceBusProperties.fullyQualifiedNamespace']]
       notificationServiceBusFQDN: $[dependencies.NotificationRBAC.outputs['serviceBusPermissionProperties.fullyQualifiedNamespace']]
       invoiceServiceBusFQDN: $[dependencies.InvoiceRBAC.outputs['serviceBusPermissionProperties.fullyQualifiedNamespace']]
+      tableFQDNStaging: $[dependencies.Table.outputs['newStorageAccountPropertiesStaging.tableFQDN']]
+      serviceBusFQDNStaging: $[dependencies.Messaging.outputs['newServiceBusPropertiesStaging.fullyQualifiedNamespace']]
+      notificationServiceBusFQDNStaging: $[dependencies.NotificationRBAC.outputs['serviceBusPermissionPropertiesStaging.fullyQualifiedNamespace']]
+      invoiceServiceBusFQDNStaging: $[dependencies.InvoiceRBAC.outputs['serviceBusPermissionPropertiesStaging.fullyQualifiedNamespace']]
     steps:
     - checkout: none
     - pwsh: Write-Output "##vso[task.setvariable variable=slotName;]production"
@@ -161,49 +205,9 @@ stages:
         appSettings: |
           [
             {
-              "name": "PaymentServiceOptions:SecretAPIKey",
-              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET/)",
-              "slotSetting": true
-            },
-            {
-              "name": "PaymentServiceOptions:SecretHashKey",
-              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/HASH-SECRET/)",
-              "slotSetting": true
-            }
-          ]
-    - task: AzureAppServiceSettings@1
-      displayName: 'Update AppSettings'
-      inputs:
-        azureSubscription: $(serviceConnection)
-        appName: $(appName)
-        slotName: $(slotName)
-        resourceGroupName: $(resourceGroupName)
-        appSettings: |
-          [
-            {
-              "name": "PaymentServiceOptions:SecretAPIKey",
-              "value": "sk_test_51RSwkoRt21XMpal8PaJpf5l6bGSGtgU1bueDBUL5mJw16bv5jPegj99Yw5yAXRSqaL0n0lFoan6JA6FOUdZWKKbb00a4PHlbrS",
-              "slotSetting": true
-            },
-            {
-              "name": "PaymentServiceOptions:SecretHashKey",
-              "value": "012345678901234567890123456789AB",
-              "slotSetting": true
-            },
-            {
-              "name": "CaptchaOptions:IsDisabled",
-              "value": "true",
-              "slotSetting": true
-            },
-            {
-              "name": "AzureWebJobs.OrderCreatedEventConsumer.Disabled",
-              "value": "true",
-              "slotSetting": true
-            },
-            {
-              "name": "AzureWebJobs.OrderSettledEventConsumer.Disabled",
-              "value": "true",
-              "slotSetting": true
+              "name": "StoreOptions:InvoicingTenant",
+              "value": "95b52e52-dc79-4ac0-a53f-1acb10238888",
+              "slotSetting": false
             },
             {
               "name": "StorageTableOptions:FullyQualifiedDomainName",
@@ -231,9 +235,79 @@ stages:
               "slotSetting": false
             },
             {
+              "name": "PaymentServiceOptions:SecretAPIKey",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET/)",
+              "slotSetting": true
+            },
+            {
+              "name": "PaymentServiceOptions:SecretHashKey",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/HASH-SECRET/)",
+              "slotSetting": true
+            }
+          ]
+    - task: AzureAppServiceSettings@1
+      displayName: 'Update AppSettings'
+      inputs:
+        azureSubscription: $(serviceConnection)
+        appName: $(appName)
+        slotName: $(slotName)
+        resourceGroupName: $(resourceGroupName)
+        appSettings: |
+          [
+            {
               "name": "StoreOptions:InvoicingTenant",
               "value": "95b52e52-dc79-4ac0-a53f-1acb10238888",
               "slotSetting": false
+            },
+            {
+              "name": "StorageTableOptions:FullyQualifiedDomainName",
+              "value": "$(tableFQDNStaging)",
+              "slotSetting": false
+            },
+            {
+              "name": "ServiceBusOptions:FullyQualifiedNamespace",
+              "value": "$(serviceBusFQDNStaging)",
+              "slotSetting": false
+            },
+            {
+              "name": "ServiceBusTriggerOptions:FullyQualifiedNamespace",
+              "value": "$(serviceBusFQDNStaging)",
+              "slotSetting": false
+            },
+            {
+              "name": "NotificationQueueOptions:FullyQualifiedNamespace",
+              "value": "$(notificationServiceBusFQDNStaging)",
+              "slotSetting": false
+            },
+            {
+              "name": "InvoiceQueueOptions:FullyQualifiedNamespace",
+              "value": "$(invoiceServiceBusFQDNStaging)",
+              "slotSetting": false
+            },
+            {
+              "name": "PaymentServiceOptions:SecretAPIKey",
+              "value": "sk_test_51RSwkoRt21XMpal8PaJpf5l6bGSGtgU1bueDBUL5mJw16bv5jPegj99Yw5yAXRSqaL0n0lFoan6JA6FOUdZWKKbb00a4PHlbrS",
+              "slotSetting": true
+            },
+            {
+              "name": "PaymentServiceOptions:SecretHashKey",
+              "value": "012345678901234567890123456789AB",
+              "slotSetting": true
+            },
+            {
+              "name": "CaptchaOptions:IsDisabled",
+              "value": "true",
+              "slotSetting": true
+            },
+            {
+              "name": "AzureWebJobs.OrderCreatedEventConsumer.Disabled",
+              "value": "true",
+              "slotSetting": true
+            },
+            {
+              "name": "AzureWebJobs.OrderSettledEventConsumer.Disabled",
+              "value": "true",
+              "slotSetting": true
             }
           ]
 
@@ -244,3 +318,4 @@ stages:
       resourceGroupName: $(resourceGroupName)
       enableStagingSlot: ${{ variables.enableStagingSlot }}
       autoSwapSlots: true
+      
