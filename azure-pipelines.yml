@@ -26,7 +26,6 @@ variables:
   notificationServiceBusNamespaceStaging: 'niobiumntfysbstaging'
   invoiceServiceBusNamespaceStaging: 'niobiuminvoicingsb'
 
-
 pool:
   vmImage: $(buildAgentVmImage)
 
