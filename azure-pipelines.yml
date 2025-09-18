@@ -150,6 +150,7 @@ stages:
       vmImage: $(buildAgentVmImage)
     variables:
       functionAppPrincipalId: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalId']]
+      functionAppPrincipalIdStaging: $[dependencies.Infrastructure.outputs['infrastructureOutputs.functionAppPrincipalIdStaging']]
     steps:
     - checkout: devops
     - template: pipelines/steps/grantPermissionServiceBus.yml@devops
