@@ -24,7 +24,7 @@ variables:
   tableDBStaging: 'niobiumstoredbstaging'
   serviceBusNamespaceStaging: 'niobiumstoresbstaging'  
   notificationServiceBusNamespaceStaging: 'niobiumntfysbstaging'
-  invoiceServiceBusNamespaceStaging: 'niobiuminvoicingsb'
+  invoiceServiceBusNamespaceStaging: 'niobiuminvoicingsbstaging'
 
 pool:
   vmImage: $(buildAgentVmImage)
