@@ -212,27 +212,27 @@ stages:
             {
               "name": "StorageTableOptions:FullyQualifiedDomainName",
               "value": "$(tableFQDN)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "ServiceBusOptions:FullyQualifiedNamespace",
               "value": "$(serviceBusFQDN)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "ServiceBusTriggerOptions:FullyQualifiedNamespace",
               "value": "$(serviceBusFQDN)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "NotificationQueueOptions:FullyQualifiedNamespace",
               "value": "$(notificationServiceBusFQDN)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "InvoiceQueueOptions:FullyQualifiedNamespace",
               "value": "$(invoiceServiceBusFQDN)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "PaymentServiceOptions:SecretAPIKey",
@@ -262,27 +262,27 @@ stages:
             {
               "name": "StorageTableOptions:FullyQualifiedDomainName",
               "value": "$(tableFQDNStaging)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "ServiceBusOptions:FullyQualifiedNamespace",
               "value": "$(serviceBusFQDNStaging)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "ServiceBusTriggerOptions:FullyQualifiedNamespace",
               "value": "$(serviceBusFQDNStaging)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "NotificationQueueOptions:FullyQualifiedNamespace",
               "value": "$(notificationServiceBusFQDNStaging)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "InvoiceQueueOptions:FullyQualifiedNamespace",
               "value": "$(invoiceServiceBusFQDNStaging)",
-              "slotSetting": false
+              "slotSetting": true
             },
             {
               "name": "PaymentServiceOptions:SecretAPIKey",
