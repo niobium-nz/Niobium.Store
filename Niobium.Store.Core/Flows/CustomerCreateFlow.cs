@@ -14,6 +14,7 @@ namespace Niobium.Store.Flows
                 Email = order.Email,
                 Order = order.GetID(),
                 Tenant = order.Tenant,
+                Customer = order.Customer,
             }, replaceIfExist: true, cancellationToken: cancellationToken);
         }
 

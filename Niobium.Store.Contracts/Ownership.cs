@@ -21,6 +21,8 @@ namespace Niobium.Store
 
         public required Guid Tenant { get; set; }
 
+        public required Guid Customer { get; set; }
+
         public static string BuildPartitionKey(string email) => email.Trim().ToLowerInvariant();
 
         public static string BuildRowKey(long order) => order.ToString();

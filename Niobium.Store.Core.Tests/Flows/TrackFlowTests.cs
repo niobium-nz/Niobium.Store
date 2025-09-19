@@ -24,15 +24,16 @@ namespace Niobium.Store.Core.Tests.Flows
         [TestMethod]
         public async Task Tracking_an_owned_order_returns_order_details()
         {
+            var customerId = Guid.NewGuid();
             var email = "alice@example.com";
             var tenant = Guid.NewGuid();
             var orderId = 10101L;
-            var ownership = BuildOwnership(email, orderId, tenant);
+            var ownership = BuildOwnership(email, orderId, tenant, customerId);
 
             var created = DateTimeOffset.UtcNow.AddDays(-1);
             var order = BuildOrder(
                 tenant: tenant,
-                customerId: Guid.NewGuid(),
+                customerId: customerId,
                 created: created,
                 status: OrderStatus.Created,
                 shippingStatus: ShippingStatus.Pending,
@@ -57,8 +58,8 @@ namespace Niobium.Store.Core.Tests.Flows
             var orderRepo = new Mock<IRepository<Order>>(MockBehavior.Strict);
             _ = orderRepo
                 .Setup(r => r.RetrieveAsync(
-                    Order.BuildPartitionKey(order.Tenant),
-                    Ownership.BuildRowKey(orderId),
+                    Order.BuildPartitionKey(ownership.Customer),
+                    Order.BuildRowKey(orderId),
                     It.IsAny<IList<string>?>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(order);
@@ -122,7 +123,7 @@ namespace Niobium.Store.Core.Tests.Flows
             var email = "carol@example.com";
             var tenant = Guid.NewGuid();
             var orderId = 30303L;
-            var ownership = BuildOwnership(email, orderId, tenant);
+            var ownership = BuildOwnership(email, orderId, tenant, Guid.NewGuid());
 
             var ownershipRepo = new Mock<IRepository<Ownership>>(MockBehavior.Strict);
             _ = ownershipRepo
@@ -136,8 +137,8 @@ namespace Niobium.Store.Core.Tests.Flows
             var orderRepo = new Mock<IRepository<Order>>(MockBehavior.Strict);
             _ = orderRepo
                 .Setup(r => r.RetrieveAsync(
-                    Order.BuildPartitionKey(tenant),
-                    Ownership.BuildRowKey(orderId),
+                    Order.BuildPartitionKey(ownership.Customer),
+                    Order.BuildRowKey(orderId),
                     It.IsAny<IList<string>?>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Order?)null);
@@ -159,11 +160,12 @@ namespace Niobium.Store.Core.Tests.Flows
         [TestMethod]
         public async Task Email_is_normalized_when_finding_ownership()
         {
+            var customerId = Guid.NewGuid();
             var rawEmail = "  DAVE@Example.COM  ";
             var normalized = rawEmail.Trim().ToLowerInvariant();
             var tenant = Guid.NewGuid();
             var orderId = 40404L;
-            var ownership = BuildOwnership(normalized, orderId, tenant);
+            var ownership = BuildOwnership(normalized, orderId, tenant, customerId);
 
             var ownershipRepo = new Mock<IRepository<Ownership>>(MockBehavior.Strict);
             _ = ownershipRepo
@@ -174,13 +176,13 @@ namespace Niobium.Store.Core.Tests.Flows
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ownership);
 
-            var order = BuildOrder(tenant, Guid.NewGuid(), DateTimeOffset.UtcNow.AddDays(-2), OrderStatus.Created, ShippingStatus.Pending, "Wellington", null, "NZ",
+            var order = BuildOrder(tenant, customerId, DateTimeOffset.UtcNow.AddDays(-2), OrderStatus.Created, ShippingStatus.Pending, "Wellington", null, "NZ",
                 new[] { new CartItem { Listing = 1, Option = "std", Quantity = 1 } });
             var orderRepo = new Mock<IRepository<Order>>(MockBehavior.Strict);
             _ = orderRepo
                 .Setup(r => r.RetrieveAsync(
-                    Order.BuildPartitionKey(tenant),
-                    Ownership.BuildRowKey(orderId),
+                    Order.BuildPartitionKey(ownership.Customer),
+                    Order.BuildRowKey(orderId),
                     It.IsAny<IList<string>?>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(order);
@@ -206,10 +208,11 @@ namespace Niobium.Store.Core.Tests.Flows
         [TestMethod]
         public async Task Order_is_fetched_using_ownerships_tenant()
         {
+            var customerId = Guid.NewGuid();
             var email = "eve@example.com";
             var tenant = Guid.NewGuid();
             var orderId = 50505L;
-            var ownership = BuildOwnership(email, orderId, tenant);
+            var ownership = BuildOwnership(email, orderId, tenant, customerId);
 
             var ownershipRepo = new Mock<IRepository<Ownership>>(MockBehavior.Strict);
             _ = ownershipRepo
@@ -220,13 +223,13 @@ namespace Niobium.Store.Core.Tests.Flows
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ownership);
 
-            var order = BuildOrder(tenant, Guid.NewGuid(), DateTimeOffset.UtcNow, OrderStatus.Created, ShippingStatus.Pending, "Christchurch", null, "NZ",
-                new[] { new CartItem { Listing = 9, Option = "std", Quantity = 1 } });
+            var order = BuildOrder(tenant, customerId, DateTimeOffset.UtcNow, OrderStatus.Created, ShippingStatus.Pending, "Christchurch", null, "NZ",
+                [new CartItem { Listing = 9, Option = "std", Quantity = 1 }]);
             var orderRepo = new Mock<IRepository<Order>>(MockBehavior.Strict);
             _ = orderRepo
                 .Setup(r => r.RetrieveAsync(
-                    Order.BuildPartitionKey(tenant),
-                    Ownership.BuildRowKey(orderId),
+                    Order.BuildPartitionKey(ownership.Customer),
+                    Order.BuildRowKey(orderId),
                     It.IsAny<IList<string>?>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(order);
@@ -238,8 +241,8 @@ namespace Niobium.Store.Core.Tests.Flows
 
             // Then order is retrieved using tenant from ownership
             orderRepo.Verify(r => r.RetrieveAsync(
-                Order.BuildPartitionKey(tenant),
-                Ownership.BuildRowKey(orderId),
+                Order.BuildPartitionKey(ownership.Customer),
+                Order.BuildRowKey(orderId),
                 It.IsAny<IList<string>?>(),
                 It.IsAny<CancellationToken>()), Times.Once);
         }
@@ -251,10 +254,11 @@ namespace Niobium.Store.Core.Tests.Flows
         [TestMethod]
         public async Task Cart_details_are_preserved_in_response()
         {
+            var customerId = Guid.NewGuid();
             var email = "frank@example.com";
             var tenant = Guid.NewGuid();
             var orderId = 60606L;
-            var ownership = BuildOwnership(email, orderId, tenant);
+            var ownership = BuildOwnership(email, orderId, tenant, customerId);
 
             var cart = new[]
             {
@@ -262,7 +266,7 @@ namespace Niobium.Store.Core.Tests.Flows
                 new CartItem{ Listing = 99, Option = "pro", Quantity = 3 },
                 new CartItem{ Listing = 77, Option = null, Quantity = 2 },
             };
-            var order = BuildOrder(tenant, Guid.NewGuid(), DateTimeOffset.UtcNow.AddHours(-5), OrderStatus.Created, ShippingStatus.Pending, "Hamilton", null, "NZ", cart);
+            var order = BuildOrder(tenant, customerId, DateTimeOffset.UtcNow.AddHours(-5), OrderStatus.Created, ShippingStatus.Pending, "Hamilton", null, "NZ", cart);
 
             var ownershipRepo = new Mock<IRepository<Ownership>>(MockBehavior.Strict);
             _ = ownershipRepo
@@ -276,8 +280,8 @@ namespace Niobium.Store.Core.Tests.Flows
             var orderRepo = new Mock<IRepository<Order>>(MockBehavior.Strict);
             _ = orderRepo
                 .Setup(r => r.RetrieveAsync(
-                    Order.BuildPartitionKey(tenant),
-                    Ownership.BuildRowKey(orderId),
+                    Order.BuildPartitionKey(ownership.Customer),
+                    Order.BuildRowKey(orderId),
                     It.IsAny<IList<string>?>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(order);
@@ -300,14 +304,15 @@ namespace Niobium.Store.Core.Tests.Flows
         [TestMethod]
         public async Task Tracking_a_cancelled_order_returns_current_status_and_shipping_info()
         {
+            var customerId = Guid.NewGuid();
             var email = "grace@example.com";
             var tenant = Guid.NewGuid();
             var orderId = 70707L;
-            var ownership = BuildOwnership(email, orderId, tenant);
+            var ownership = BuildOwnership(email, orderId, tenant, customerId);
 
             var order = BuildOrder(
                 tenant: tenant,
-                customerId: Guid.NewGuid(),
+                customerId: customerId,
                 created: DateTimeOffset.UtcNow.AddDays(-3),
                 status: OrderStatus.Cancelled,
                 shippingStatus: ShippingStatus.NotApplicable,
@@ -328,8 +333,8 @@ namespace Niobium.Store.Core.Tests.Flows
             var orderRepo = new Mock<IRepository<Order>>(MockBehavior.Strict);
             _ = orderRepo
                 .Setup(r => r.RetrieveAsync(
-                    Order.BuildPartitionKey(tenant),
-                    Ownership.BuildRowKey(orderId),
+                    Order.BuildPartitionKey(ownership.Customer),
+                    Order.BuildRowKey(orderId),
                     It.IsAny<IList<string>?>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(order);
@@ -346,11 +351,12 @@ namespace Niobium.Store.Core.Tests.Flows
         }
 
         // Builders (readability helpers; mirror how the app composes model values from inputs)
-        private static Ownership BuildOwnership(string email, long orderId, Guid tenant) => new()
+        private static Ownership BuildOwnership(string email, long orderId, Guid tenant, Guid customer) => new()
         {
             Email = email.Trim().ToLowerInvariant(),
             Order = orderId,
-            Tenant = tenant
+            Tenant = tenant,
+            Customer = customer,
         };
 
         private static Order BuildOrder(

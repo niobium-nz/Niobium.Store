@@ -9,7 +9,7 @@ namespace Niobium.Store.Flows
                 Ownership.BuildRowKey(request.Order),
                 cancellationToken: cancellationToken)
                 ?? throw new ApplicationException(InternalError.NotFound, "Order not found.");
-            var order = await orderRepo.RetrieveAsync(Order.BuildPartitionKey(ownership.Tenant), Ownership.BuildRowKey(request.Order), cancellationToken: cancellationToken)
+            var order = await orderRepo.RetrieveAsync(Order.BuildPartitionKey(ownership.Customer), Order.BuildRowKey(request.Order), cancellationToken: cancellationToken)
                 ?? throw new ApplicationException(InternalError.NotFound, "Order not found.");
             return new TrackResponse
             {
