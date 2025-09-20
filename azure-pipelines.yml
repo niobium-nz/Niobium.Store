@@ -298,16 +298,6 @@ stages:
               "name": "CaptchaOptions:IsDisabled",
               "value": "true",
               "slotSetting": true
-            },
-            {
-              "name": "AzureWebJobs.OrderCreatedEventConsumer.Disabled",
-              "value": "true",
-              "slotSetting": true
-            },
-            {
-              "name": "AzureWebJobs.OrderSettledEventConsumer.Disabled",
-              "value": "true",
-              "slotSetting": true
             }
           ]
 
@@ -326,7 +316,7 @@ stages:
     pool:
       vmImage: $(buildAgentVmImage)
     variables:
-      API_URL: 'https://niobiumstorefunc-staging.azurewebsites.net'
+      API_URL: 'https://staging.api.store.niobium.co.nz'
     steps:
     - task: Npm@1
       inputs:

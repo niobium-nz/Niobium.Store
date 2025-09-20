@@ -11,7 +11,7 @@ namespace Niobium.Store.Events
         {
             if (e.Order.MarketingSubscription)
             {
-                var campaign = e.Order.GetCart().Single().Listing.ToString();
+                var campaign = e.Order.GetCart().First().Listing.ToString();
                 await broker.EnqueueAsync(new MessagingEntry<SubscribeCommand>
                 {
                     ID = e.Order.GetFullID(),
