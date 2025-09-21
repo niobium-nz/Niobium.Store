@@ -7,6 +7,7 @@ variables:
   serviceConnection: 'niobium-store'
   resourceGroupName: 'niobium-store'
   appName: 'niobiumstoreFunc'
+  assetsPageName: 'assets.store.niobium.co.nz'
 
   orderCreateEventQueueName: 'ordercreatedevent'
   orderSettledEventQueueName: 'ordersettledevent'
@@ -344,3 +345,9 @@ stages:
         WebAppName: $(appName)
         SourceSlot: 'staging'
         SwapWithProduction: true
+
+  - template: pipelines/jobs/AssetsDeploy.yml@devops
+    parameters:
+      cloudflarePagesProjectName: $(assetsPageName)
+      cloudflareAccountID: $(cloudflareAccountID)
+      cloudflareAPIToken: $(cloudflareAPIToken)
