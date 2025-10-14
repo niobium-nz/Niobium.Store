@@ -16,6 +16,14 @@ public class GetQuote(QuoteFlow flow, IVisitorRiskAssessor assessor)
         [FromBody] QuoteRequest request,
         CancellationToken cancellationToken)
     {
+        string? clientIP = null;
+        if (req.Headers.TryGetValue("CF-Connecting-IP", out var ip))
+        {
+            clientIP = ip.ToString();
+        }
+
+        clientIP = clientIP ?? req.GetRemoteIP();
+        
         var referer = req.GetSourceHostname();
         if (String.IsNullOrWhiteSpace(referer) || request.Tenant == Guid.Empty)
         {
@@ -28,7 +36,7 @@ public class GetQuote(QuoteFlow flow, IVisitorRiskAssessor assessor)
             return validationState.MakeResponse();
         }
 
-        var lowRisk = await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), hostname: referer, cancellationToken: cancellationToken);
+        var lowRisk = await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), hostname: referer, clientIP: clientIP, cancellationToken: cancellationToken);
         if (!lowRisk)
         {
             return new UnauthorizedResult();
