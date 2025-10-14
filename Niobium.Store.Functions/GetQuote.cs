@@ -109,7 +109,7 @@ public class GetQuote(QuoteFlow flow, ILogger<GetQuote> logger,
         }
 
         string respbody = await response.Content.ReadAsStringAsync(cancellationToken);
-        logger.LogDebug($"Google ReCaptcha response: {respbody} on request {requestID}.");
+        logger.LogInformation($"Google ReCaptcha response: {respbody} on request {requestID}.");
         GoogleReCaptchaResult2 result = JsonMarshaller.Unmarshall<GoogleReCaptchaResult2>(respbody, JsonMarshallingFormat.SnakeCase);
         if (result == null)
         {
