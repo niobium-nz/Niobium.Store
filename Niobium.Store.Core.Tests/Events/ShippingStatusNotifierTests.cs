@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Niobium.Store.Core.Tests.Events
 {
     [TestClass]
-    public class OrderReceivedNotifierTests
+    public class ShippingStatusNotifierTests
     {
         [TestMethod]
         public async Task Order_paid_triggers_customer_notification_without_errors()
@@ -23,7 +23,7 @@ namespace Niobium.Store.Core.Tests.Events
 
             // And a notifier with a messaging broker (external boundary mocked)
             var broker = new Mock<IMessagingBroker<NotifyCommand>>(MockBehavior.Loose);
-            var notifier = new OrderReceivedNotifier(broker.Object);
+            var notifier = new ShippingStatusNotifier(broker.Object);
 
             // When the order-settled event is handled
             Func<Task> act = async () => await notifier.HandleAsync(evt, CancellationToken.None);

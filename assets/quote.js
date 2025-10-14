@@ -183,7 +183,7 @@
             body: JSON.stringify(data),
         };
 
-        const url = (baseUrl || "/api") + "/quote";
+        const url = (baseUrl || "/api/store/") + "/quote";
         return await niobium.fetchWithRetry(url, options);
     }
 
