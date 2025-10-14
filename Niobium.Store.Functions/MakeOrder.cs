@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 using Niobium.Platform;
 using Niobium.Platform.Captcha.ReCaptcha;
 using Niobium.Store.Flows;
@@ -8,7 +9,7 @@ using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribut
 
 namespace Niobium.Store.Functions;
 
-public class MakeOrder(OrderFlow flow, IVisitorRiskAssessor assessor)
+public class MakeOrder(OrderFlow flow, IVisitorRiskAssessor assessor, ILogger<MakeOrder> logger)
 {
     [Function(nameof(MakeOrder))]
     public async Task<IActionResult> Run(
@@ -25,6 +26,8 @@ public class MakeOrder(OrderFlow flow, IVisitorRiskAssessor assessor)
         clientIP = clientIP ?? req.GetRemoteIP();
 
         var referer = req.GetSourceHostname();
+        logger.LogInformation($"MakeOrder request from {clientIP} referer {referer} for tenant {request.Tenant}.");
+
         if (String.IsNullOrWhiteSpace(referer) || request.Tenant == Guid.Empty)
         {
             return new BadRequestObjectResult(new { Error = "Tenant is required." });
