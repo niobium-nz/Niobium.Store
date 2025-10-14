@@ -32,7 +32,7 @@ public class GetQuote(QuoteFlow flow, ILogger<GetQuote> logger,
         var referer = req.GetSourceHostname();
        
         clientIP = clientIP ?? req.GetRemoteIP();
-        logger.LogInformation($"MakeOrder request from {clientIP} referer {referer} for tenant {request.Tenant}.");
+        logger.LogWarning($"MakeOrder request from {clientIP} referer {referer} for tenant {request.Tenant}.");
 
 
 
@@ -109,7 +109,7 @@ public class GetQuote(QuoteFlow flow, ILogger<GetQuote> logger,
         }
 
         string respbody = await response.Content.ReadAsStringAsync(cancellationToken);
-        logger.LogInformation($"Google ReCaptcha response: {respbody} on request {requestID}.");
+        logger.LogWarning($"Google ReCaptcha response: {respbody} on request {requestID}.");
         GoogleReCaptchaResult2 result = JsonMarshaller.Unmarshall<GoogleReCaptchaResult2>(respbody, JsonMarshallingFormat.SnakeCase);
         if (result == null)
         {
