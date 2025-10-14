@@ -28,6 +28,11 @@ namespace Niobium.Store
 
         public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+            if (this.Tenant == Guid.Empty)
+            {
+                yield return new ValidationResult("Tenant is required.", [nameof(this.Tenant)]);
+            }
+
             if (!Country.TryParse(this.ShippingCountry, out _))
             {
                 yield return new ValidationResult($"Invalid country code: {this.ShippingCountry}", [nameof(this.ShippingCountry)]);

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using Niobium.Platform;
 using Niobium.Platform.Captcha.ReCaptcha;
 using Niobium.Store.Flows;
@@ -9,7 +8,7 @@ using FromBodyAttribute = Microsoft.Azure.Functions.Worker.Http.FromBodyAttribut
 
 namespace Niobium.Store.Functions;
 
-public class MakeOrder(OrderFlow flow, IVisitorRiskAssessor assessor, ILogger<MakeOrder> logger)
+public class MakeOrder(OrderFlow flow, IVisitorRiskAssessor assessor)
 {
     [Function(nameof(MakeOrder))]
     public async Task<IActionResult> Run(
@@ -17,35 +16,19 @@ public class MakeOrder(OrderFlow flow, IVisitorRiskAssessor assessor, ILogger<Ma
         [FromBody] OrderRequest request,
         CancellationToken cancellationToken)
     {
-        string? clientIP = null;
-        if (req.Headers.TryGetValue("CF-Connecting-IP", out var ip))
-        {
-            clientIP = ip.ToString();
-        }
-
-        clientIP = clientIP ?? req.GetRemoteIP();
-
-        var referer = req.GetSourceHostname();
-        logger.LogInformation($"MakeOrder request from {clientIP} referer {referer} for tenant {request.Tenant}.");
-
-        if (String.IsNullOrWhiteSpace(referer) || request.Tenant == Guid.Empty)
-        {
-            return new BadRequestObjectResult(new { Error = "Tenant is required." });
-        }
-
         var valid = request.TryValidate(out var validationState);
         if (!valid || !validationState.IsValid)
         {
             return validationState.MakeResponse();
         }
 
-        var lowRisk = await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), hostname: referer, clientIP: clientIP, cancellationToken: cancellationToken);
+        var lowRisk = await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), cancellationToken: cancellationToken);
         if (!lowRisk)
         {
             return new UnauthorizedResult();
         }
 
-        var response = await flow.RunAsync(request, clientIP, cancellationToken);
+        var response = await flow.RunAsync(request, req.GetRemoteIP(), cancellationToken);
         return new OkObjectResult(response);
     }
 }

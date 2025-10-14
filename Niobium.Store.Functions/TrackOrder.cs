@@ -16,19 +16,13 @@ public class TrackOrder(TrackFlow flow, IVisitorRiskAssessor assessor)
         [FromBody] TrackRequest request,
         CancellationToken cancellationToken)
     {
-        var referer = req.GetSourceHostname();
-        if (String.IsNullOrWhiteSpace(referer))
-        {
-            return new BadRequestObjectResult(new { Error = "Tenant is required." });
-        }
-
         var valid = request.TryValidate(out var validationState);
         if (!valid || !validationState.IsValid)
         {
             return validationState.MakeResponse();
         }
 
-        var lowRisk = await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), hostname: referer, cancellationToken: cancellationToken);
+        var lowRisk = await assessor.AssessAsync(request.Captcha, requestID: request.ID.ToString(), cancellationToken: cancellationToken);
         if (!lowRisk)
         {
             return new UnauthorizedResult();
