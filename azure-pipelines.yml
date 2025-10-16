@@ -11,6 +11,8 @@ variables:
 
   orderCreateEventQueueName: 'ordercreatedevent'
   orderSettledEventQueueName: 'ordersettledevent'
+  orderShippedEventQueueName: 'ordershippedevent'
+  orderDeliveredEventQueueName: 'orderdeliveredevent'
   fulfillOrderCommandQueueName: 'fulfillordercommand'
   updateTrackingCommandQueueName: 'updatetrackingcommand'
   invoiceServiceBusResourceGroup: 'niobium-invoicing' 
@@ -104,7 +106,7 @@ stages:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
         serviceBusNamespaceName: $(serviceBusNamespace)
-        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(fulfillOrderCommandQueueName), $(updateTrackingCommandQueueName)]
+        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(orderShippedEventQueueName), $(orderDeliveredEventQueueName), $(fulfillOrderCommandQueueName), $(updateTrackingCommandQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalId)
         outputVariableName: 'newServiceBusProperties'
     - template: pipelines/steps/newServiceBus.yml@devops
@@ -113,7 +115,7 @@ stages:
         azureServiceConnection: $(serviceConnection)
         resourceGroupName: $(resourceGroupName)
         serviceBusNamespaceName: $(serviceBusNamespaceStaging)
-        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(fulfillOrderCommandQueueName), $(updateTrackingCommandQueueName)]
+        serviceBusQueueNames: [$(orderCreateEventQueueName), $(orderSettledEventQueueName), $(orderShippedEventQueueName), $(orderDeliveredEventQueueName), $(fulfillOrderCommandQueueName), $(updateTrackingCommandQueueName)]
         dataOwnerPrincipalId: $(functionAppPrincipalIdStaging)
         outputVariableName: 'newServiceBusPropertiesStaging'
 

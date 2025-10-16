@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Niobium.Finance;
 using Niobium.Invoicing;
+using Niobium.Notification;
 using Niobium.Store.Options;
 using Transaction = Niobium.Finance.Transaction;
 
@@ -16,6 +17,10 @@ namespace Niobium.Store.Domains
         ILogger<OrderDomain> logger)
         : GenericDomain<Order>(repository, eventHandlers)
     {
+        private const string OrderConfirmedNotificationChannel = "OrderConfirmed";
+        private const string OrderShippedNotificationChannel = "OrderShipped";
+        private const string OrderDeliveredNotificationChannel = "OrderDelivered";
+
         public async Task<Order> TakeNew(OrderRequest request, QuoteResponse quote, string? clientIP, CancellationToken cancellationToken = default)
         {
             var newOrder = CreateNewOrder(request);
@@ -124,6 +129,45 @@ namespace Niobium.Store.Domains
                 Amount = due.Cents,
                 Currency = due.Currency,
                 IP = clientIP,
+            };
+        }
+
+        public async Task<NotifyCommand?> GenerateNotificationAsync(CancellationToken cancellationToken = default)
+        {
+            var entity = await this.GetEntityAsync(cancellationToken);
+            string? channel = null;
+            string? id = null;
+            switch ((OrderStatus)entity.Status)
+            {
+                case OrderStatus.Paid:
+                    id = $"{OrderConfirmedNotificationChannel}-{entity.GetFullID()}";
+                    channel = OrderConfirmedNotificationChannel;
+                    break;
+                case OrderStatus.Shipped:
+                    id = $"{OrderShippedNotificationChannel}-{entity.GetFullID()}";
+                    channel = OrderShippedNotificationChannel;
+                    break;
+                case OrderStatus.Delivered:
+                    id = $"{OrderDeliveredNotificationChannel}-{entity.GetFullID()}";
+                    channel = OrderDeliveredNotificationChannel;
+                    break;
+            }
+
+            if (id == null || channel == null)
+            {
+                logger.LogWarning($"Order {entity.GetFullID()} status {entity.Status} does not require notification.");
+                return null;
+            }
+
+            var parameters = entity.BuildNotificationParameters();
+            return new NotifyCommand
+            {
+                ID = id,
+                Tenant = entity.Tenant,
+                Channel = channel,
+                Destination = entity.Email,
+                DestinationDisplayName = entity.Consignee,
+                Parameters = parameters.ToDictionary(),
             };
         }
 

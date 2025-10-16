@@ -21,6 +21,8 @@ namespace Niobium.Store
             _ = builder.Services.RegisterDomainComponents(typeof(DependencyModule));
             _ = builder.Services.EnableExternalEvent<OrderCreatedEvent, Order>();
             _ = builder.Services.EnableExternalEvent<OrderSettledEvent, Order>();
+            _ = builder.Services.EnableExternalEvent<OrderShippedEvent, Order>();
+            _ = builder.Services.EnableExternalEvent<OrderDeliveredEvent, Order>();
         }
     }
 }
