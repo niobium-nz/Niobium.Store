@@ -10,7 +10,7 @@ namespace Niobium.Store.Flows
         IRepository<Listing> listingRepo)
             : IFlow
     {
-        public async Task RunAsync(Order order, CancellationToken cancellationToken = default)
+        public async Task<NotifyCommand?> RunAsync(Order order, CancellationToken cancellationToken = default)
         {
             var domain = await orderRepo.GetAsync(order, cancellationToken);
             var notification = await domain.GenerateNotificationAsync(cancellationToken);
@@ -38,6 +38,8 @@ namespace Niobium.Store.Flows
                     Value = notification,
                 }, cancellationToken: cancellationToken);
             }
+
+            return notification;
         }
     }
 }
