@@ -23,6 +23,8 @@ namespace Niobium.Store
 
         public required long Price { get; set; }
 
+        public required long WasPrice { get; set; }
+
         public required string Currency { get; set; }
 
         public required string SKU { get; set; }

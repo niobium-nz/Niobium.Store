@@ -260,37 +260,5 @@ namespace Niobium.Store.Core.Tests.Flows
                 BillingPostcode = "10001",
                 Cart = [new CartItem { Listing = 1, Option = "Default", Quantity = 1 }],
             };
-
-        private static QuoteResponse BuildQuoteResponse(QuoteRequest request, params (int listing, string option, long unit, int qty, string currency, long taxRate, TaxKind taxKind)[] lines)
-        {
-            var items = new List<PricedCartItem>();
-            foreach (var (listing, option, unit, qty, currency, taxRate, taxKind) in lines)
-            {
-                var amount = unit * qty;
-                items.Add(new PricedCartItem
-                {
-                    Listing = listing,
-                    Option = option,
-                    Quantity = qty,
-                    Unit = unit,
-                    Was = amount,
-                    Now = amount,
-                    Discount = 0,
-                    Tax = new Tax(taxRate, taxKind),
-                    Currency = currency,
-                });
-            }
-
-            var baseline = items.First();
-            var shippingQuote = new TaxableAmount
-            {
-                Amount = new Amount { Cents = 900, Currency = baseline.Currency },
-                Tax = baseline.Tax
-            };
-
-            var quote = new QuoteResponse(request, items, shippingQuote);
-            quote.Update();
-            return quote;
-        }
     }
 }

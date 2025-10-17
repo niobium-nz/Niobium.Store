@@ -200,8 +200,14 @@ namespace Niobium.Store.Core.Tests.Flows
 
             quote.Quote.Should().HaveCount(1);
             var item = quote.Quote.Single();
-            item.Discount.Should().BeGreaterThan(0);
-            item.DiscountDescription.Should().Contain("Buy 1 Get 1 Free");
+            item.Listing.Should().Be(1);
+            item.Now.Should().Be(500);
+            item.Quantity.Should().Be(2);
+            item.LineTotal.Should().Be(1000);
+            quote.DiscountDescription.Should().Contain("Buy 1 Get 1 Free");
+            quote.Discount.Should().Be(500);
+            quote.Tax.Should().Be(140);
+            quote.GrandTotal.Should().Be(1540);
         }
 
         // Scenario: Buy 2 Get 3 Free promotion with gift item handling
@@ -219,7 +225,7 @@ namespace Niobium.Store.Core.Tests.Flows
 
             var tax = new Tax(rate: 1000, kind: TaxKind.GST);
             var listing1 = BuildListing(1, "Default", 500, "USD", tax.Rate, (int)tax.Kind);
-            var listing2 = BuildListing(2, "Default", 300, "USD", tax.Rate, (int)tax.Kind);
+            var listing2 = BuildListing(2, "Default", 0, "USD", tax.Rate, (int)tax.Kind);
             var shipping = BuildShippingOption(10, 900, "USD", new[] { "US" });
             var promotion = BuildPromotion(tenant, "BUY2GET3FREE");
 
@@ -242,12 +248,21 @@ namespace Niobium.Store.Core.Tests.Flows
 
             var quote = await flow.RunAsync(request, CancellationToken.None);
 
-            var discounted = quote.Quote.Single(i => i.Listing == 1);
+            quote.Quote.Should().HaveCount(2);
+            var item = quote.Quote.Single(i => i.Listing == 1);
             var gift = quote.Quote.Single(i => i.Listing == 2);
-            discounted.Discount.Should().BeGreaterThan(0);
-            discounted.DiscountDescription.Should().Contain("Buy 2 Get 3 Free");
-            gift.Discount.Should().BeGreaterThan(0);
-            gift.DiscountDescription.Should().Contain("Hair Remover Free");
+            item.Now.Should().Be(500);
+            item.Quantity.Should().Be(5);
+            item.LineTotal.Should().Be(2500);
+            gift.Now.Should().Be(0);
+            gift.Quantity.Should().Be(4);
+            gift.LineTotal.Should().Be(0);
+            quote.Discount.Should().Be(1500);
+            quote.Tax.Should().Be(190);
+            quote.GrandTotal.Should().Be(2090);
+
+            quote.DiscountDescription.Should().Contain("Buy 2 Get 3 Free");
+            quote.DiscountDescription.Should().Contain("Get 4 Hair Remover Free");
         }
 
         // Scenario: Coupon present but not applicable to current cart

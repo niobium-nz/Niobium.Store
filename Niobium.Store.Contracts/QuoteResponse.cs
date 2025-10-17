@@ -33,6 +33,8 @@ namespace Niobium.Store
 
         public long Discount { get; set; }
 
+        public List<string> DiscountDescription { get; set; } = [];
+
         public long Tax { get; set; }
 
         public Tax TaxInfo { get; set; }
@@ -41,8 +43,7 @@ namespace Niobium.Store
 
         public void Update()
         {
-            this.Discount = Math.Max(0, this.Quote.Sum(x => x.Discount));
-            this.SubTotal = this.Quote.Sum(x => x.Was);
+            this.SubTotal = this.Quote.Sum(x => x.LineTotal);
             var amountSubjectToTax = this.SubTotal + this.ShippingCost - this.Discount;
             this.Tax = amountSubjectToTax * this.TaxInfo.Rate / 10000;
             this.GrandTotal = amountSubjectToTax + this.Tax;
