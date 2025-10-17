@@ -61,29 +61,34 @@ namespace Niobium.Store.Domains
 
         private static string ToSnakeCaseUpper(string text)
         {
-            if (text.Length < 2)
+            if (string.IsNullOrEmpty(text))
             {
-                return text.ToUpperInvariant();
+                return string.Empty;
             }
 
-            text = text.Replace("ID", "Id", StringComparison.InvariantCulture);
+            var sb = new StringBuilder(text.Length * 2);
+            sb.Append(char.ToUpperInvariant(text[0]));
 
-            StringBuilder sb = new();
-            _ = sb.Append(Char.ToUpperInvariant(text[0]));
-            for (var i = 1; i < text.Length; ++i)
+            for (int i = 1; i < text.Length; i++)
             {
-                var c = text[i];
-                if (Char.IsUpper(c))
+                char current = text[i];
+                char previous = text[i - 1];
+                char? next = i + 1 < text.Length ? text[i + 1] : (char?)null;
+
+                bool isUpper = char.IsUpper(current);
+                bool prevIsUpper = char.IsUpper(previous);
+                bool prevIsLower = char.IsLower(previous);
+                bool nextIsLower = next.HasValue && char.IsLower(next.Value);
+
+                if (isUpper && (prevIsLower || (prevIsUpper && nextIsLower)))
                 {
-                    _ = sb.Append('_');
-                    _ = sb.Append(Char.ToUpperInvariant(c));
+                    sb.Append('_');
                 }
-                else
-                {
-                    _ = sb.Append(c);
-                }
+
+                sb.Append(char.ToUpperInvariant(current));
             }
-            return sb.ToString().ToUpperInvariant();
+
+            return sb.ToString();
         }
     }
 }
