@@ -45,7 +45,7 @@ namespace Niobium.Store.Domains
                 { ToSnakeCaseUpper(nameof(order.ShippingAddressLine1)), order.ShippingAddressLine1 },
                 { ToSnakeCaseUpper(nameof(order.ShippingAddressLine2)), order.ShippingAddressLine2 ?? String.Empty },
                 { ToSnakeCaseUpper(nameof(order.ShippingCity)), order.ShippingCity },
-                { ToSnakeCaseUpper(nameof(order.ShippingCost)), new Amount(order.ShippingCost, order.Currency).ToString() },
+                { ToSnakeCaseUpper(nameof(order.ShippingCost)), order.ShippingCost == 0 ? "FREE" : new Amount(order.ShippingCost, order.Currency).ToString() },
                 { ToSnakeCaseUpper(nameof(order.ShippingCountry)), Country.Parse(order.ShippingCountry).Fullname },
                 { ToSnakeCaseUpper(nameof(order.ShippingPostcode)), order.ShippingPostcode },
                 { ToSnakeCaseUpper(nameof(order.ShippingState)), order.ShippingState ?? String.Empty },
