@@ -75,7 +75,7 @@ namespace Niobium.Store.Domains
         {
             if (this.RowKey == "BUY1GET1FREE")
             {
-                var item = invoice.InvoiceItems.FirstOrDefault(i => i.ID == Int32.Parse(invoice.ID) + PromotionalListing_BUY1GET1FREE);
+                var item = invoice.InvoiceItems.FirstOrDefault(i => i.ID == invoice.InvoiceID + PromotionalListing_BUY1GET1FREE);
                 if (item != null)
                 {
                     invoice.InvoiceItems.Add(new InvoiceItem
@@ -94,7 +94,7 @@ namespace Niobium.Store.Domains
             }
             else if (this.RowKey == "BUY2GET3FREE")
             {
-                var item = invoice.InvoiceItems.FirstOrDefault(i => i.ID == Int32.Parse(invoice.ID) + PromotionalListing_BUY2GET3FREE);
+                var item = invoice.InvoiceItems.FirstOrDefault(i => i.ID == invoice.InvoiceID + PromotionalListing_BUY2GET3FREE);
                 if (item != null)
                 {
                     invoice.InvoiceItems.Add(new InvoiceItem
@@ -111,7 +111,7 @@ namespace Niobium.Store.Domains
                     });
                 }
 
-                var giftItem = invoice.InvoiceItems.FirstOrDefault(i => i.ID == Int32.Parse(invoice.ID) + PromotionalListing_BUY2GET3FREE_GIFT);
+                var giftItem = invoice.InvoiceItems.FirstOrDefault(i => i.ID == invoice.InvoiceID + PromotionalListing_BUY2GET3FREE_GIFT);
                 if (giftItem != null)
                 {
                     invoice.InvoiceItems.Add(new InvoiceItem
