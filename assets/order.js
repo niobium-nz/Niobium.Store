@@ -123,19 +123,24 @@
 
     /**
      * Executes a fetch request with a retry mechanism.
+     * Allows passing a function that will be invoked on each attempt to produce fresh options (e.g., for reCAPTCHA tokens).
      * @param {string} url The URL to send the request to.
-     * @param {RequestInit} options The fetch options.
+     * @param {RequestInit|(() => Promise<RequestInit>|RequestInit)} options The fetch options or a factory returning options per attempt.
      * @param {number} [retries=3] The maximum number of retry attempts.
      * @returns {Promise<Response>} The fetch response.
      */
     niobium.fetchWithRetry = niobium.fetchWithRetry || async function fetchWithRetry(url, options, retries = 3) {
+        const resolveOptions = async () => (typeof options === "function" ? await /** @type {any} */ (options)() : options);
+
         try {
-            const response = await fetch(url, options);
+            const currentOptions = await resolveOptions();
+            const response = await fetch(url, currentOptions);
 
             if (!response.ok && retries > 0) {
                 console.warn(`Fetch failed with status ${response.status}. Retrying...`);
                 const delay = 1000 * (4 - retries);
                 await new Promise((resolve) => setTimeout(resolve, delay));
+                // Recurse with the original options reference so a factory can produce fresh values on each attempt
                 return await niobium.fetchWithRetry(url, options, retries - 1);
             }
             return response;
@@ -225,61 +230,74 @@
         if (!details || !Array.isArray(details.cart) || details.cart.length <= 0)
             throw new Error("Cart must be a non-empty array.");
 
-        let token;
-        try {
-            token = await niobium.getRecaptchaToken(reCaptchaPublicKey, "order");
-        } catch (error) {
-            return Promise.reject(new Error("reCAPTCHA execution failed."));
-        }
-
-        /** @type {OrderRequestData} */
-        const data = {
-            ID: niobium.generateGUID(),
-            Tenant: tenant,
-            Shipping: (details.shipping ?? details.shippingId),
-            ShippingCountry: details.shippingCountry,
-            Coupon: details.coupon,
-            Captcha: token,
-            Timestamp: Date.now(),
-            Culture: details.culture || (navigator.language || 'en-US'),
-            TimeZone: details.timeZone || (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
-            Consignee: details.consignee,
-            Email: details.email,
-            Phone: details.phone,
-            Notes: details.notes,
-            ShippingAddressLine1: details.shippingAddressLine1,
-            ShippingAddressLine2: details.shippingAddressLine2,
-            ShippingSuburb: details.shippingSuburb,
-            ShippingCity: details.shippingCity,
-            ShippingState: details.shippingState,
-            ShippingPostcode: details.shippingPostcode,
-            BillingName: details.billingName,
-            BillingBusiness: details.billingBusiness,
-            BillingAddressLine1: details.billingAddressLine1,
-            BillingAddressLine2: details.billingAddressLine2,
-            BillingSuburb: details.billingSuburb,
-            BillingCity: details.billingCity,
-            BillingState: details.billingState,
-            BillingCountry: details.billingCountry,
-            BillingPostcode: details.billingPostcode,
-            MarketingSubscription: !!details.marketingSubscription,
-            Track: details.track,
-            Cart: details.cart,
-        };
+        // Prepare stable parts of the payload to keep idempotency across retries
+        const stableId = niobium.generateGUID();
+        const stableTimestamp = Date.now();
+        const stableCulture = details.culture || (navigator.language || 'en-US');
+        const stableTimeZone = details.timeZone || (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
 
         const headers = { "Content-Type": "application/json" };
         if (localTest) {
             headers["Referer"] = "http://127.0.0.1:3000/";
         }
 
-        const options = {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(data),
+        /**
+         * Build fresh RequestInit with a new reCAPTCHA token on every attempt
+         * @returns {Promise<RequestInit>}
+         */
+        const buildOptions = async () => {
+            let token;
+            try {
+                token = await niobium.getRecaptchaToken(reCaptchaPublicKey, "order");
+            } catch (error) {
+                throw new Error("reCAPTCHA execution failed.");
+            }
+
+            /** @type {OrderRequestData} */
+            const data = {
+                ID: stableId,
+                Tenant: tenant,
+                Shipping: (details.shipping ?? details.shippingId),
+                ShippingCountry: details.shippingCountry,
+                Coupon: details.coupon,
+                Captcha: token,
+                Timestamp: stableTimestamp,
+                Culture: stableCulture,
+                TimeZone: stableTimeZone,
+                Consignee: details.consignee,
+                Email: details.email,
+                Phone: details.phone,
+                Notes: details.notes,
+                ShippingAddressLine1: details.shippingAddressLine1,
+                ShippingAddressLine2: details.shippingAddressLine2,
+                ShippingSuburb: details.shippingSuburb,
+                ShippingCity: details.shippingCity,
+                ShippingState: details.shippingState,
+                ShippingPostcode: details.shippingPostcode,
+                BillingName: details.billingName,
+                BillingBusiness: details.billingBusiness,
+                BillingAddressLine1: details.billingAddressLine1,
+                BillingAddressLine2: details.billingAddressLine2,
+                BillingSuburb: details.billingSuburb,
+                BillingCity: details.billingCity,
+                BillingState: details.billingState,
+                BillingCountry: details.billingCountry,
+                BillingPostcode: details.billingPostcode,
+                MarketingSubscription: !!details.marketingSubscription,
+                Track: details.track,
+                Cart: details.cart,
+            };
+
+            return {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(data),
+            };
         };
 
         const url = (baseUrl || "/api/store") + "/orders";
-        return await niobium.fetchWithRetry(url, options);
+        // Pass the options factory so each retry gets a fresh token
+        return await niobium.fetchWithRetry(url, buildOptions);
     }
 
     // Public API

@@ -55,19 +55,24 @@
 
     /**
      * Executes a fetch request with a retry mechanism.
+     * Allows passing a function that will be invoked on each attempt to produce fresh options (e.g., for reCAPTCHA tokens).
      * @param {string} url The URL to send the request to.
-     * @param {RequestInit} options The fetch options.
+     * @param {RequestInit|(() => Promise<RequestInit>|RequestInit)} options The fetch options or a factory returning options per attempt.
      * @param {number} [retries=3] The maximum number of retry attempts.
      * @returns {Promise<Response>} The fetch response.
      */
     niobium.fetchWithRetry = niobium.fetchWithRetry || async function fetchWithRetry(url, options, retries = 3) {
+        const resolveOptions = async () => (typeof options === "function" ? await /** @type {any} */ (options)() : options);
+
         try {
-            const response = await fetch(url, options);
+            const currentOptions = await resolveOptions();
+            const response = await fetch(url, currentOptions);
 
             if (!response.ok && retries > 0) {
                 console.warn(`Fetch failed with status ${response.status}. Retrying...`);
                 const delay = 1000 * (4 - retries);
                 await new Promise((resolve) => setTimeout(resolve, delay));
+                // Recurse with the original options reference so a factory can produce fresh values on each attempt
                 return await niobium.fetchWithRetry(url, options, retries - 1);
             }
             return response;
@@ -126,34 +131,44 @@
             throw new Error("Email and order are required.");
         }
 
-        let token;
-        try {
-            token = await niobium.getRecaptchaToken(reCaptchaPublicKey, "track");
-        } catch (error) {
-            return Promise.reject(new Error("reCAPTCHA execution failed."));
-        }
-
-        /** @type {TrackRequestData} */
-        const data = {
-            ID: niobium.generateGUID(),
-            Email: details.email,
-            Captcha: token,
-            Order: details.order,
-        };
+        // Stable identity per attempt sequence
+        const stableId = niobium.generateGUID();
 
         const headers = { "Content-Type": "application/json" };
         if (localTest) {
             headers["Referer"] = "http://127.0.0.1:3000/";
         }
 
-        const options = {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(data),
+        /**
+         * Build fresh RequestInit with a new reCAPTCHA token on every attempt
+         * @returns {Promise<RequestInit>}
+         */
+        const buildOptions = async () => {
+            let token;
+            try {
+                token = await niobium.getRecaptchaToken(reCaptchaPublicKey, "track");
+            } catch (error) {
+                throw new Error("reCAPTCHA execution failed.");
+            }
+
+            /** @type {TrackRequestData} */
+            const data = {
+                ID: stableId,
+                Email: details.email,
+                Captcha: token,
+                Order: details.order,
+            };
+
+            return {
+                method: "POST",
+                headers: headers,
+                body: JSON.stringify(data),
+            };
         };
 
         const url = (baseUrl || "/api/store") + "/track";
-        return await niobium.fetchWithRetry(url, options);
+        // Pass the options factory so each retry gets a fresh token
+        return await niobium.fetchWithRetry(url, buildOptions);
     }
 
     // Public API
