@@ -38,6 +38,8 @@ namespace Niobium.Store
 
         public long Tax => Total - Total * 10000 / (10000 + TaxInfo.Rate);
 
-        public long Total => this.Quote.Sum(x => x.LineTotal) + this.ShippingCost - this.Discount;
+        public long Subtotal => this.Quote.Sum(x => x.LineTotal);
+
+        public long Total => this.Subtotal + this.ShippingCost - this.Discount;
     }
 }
