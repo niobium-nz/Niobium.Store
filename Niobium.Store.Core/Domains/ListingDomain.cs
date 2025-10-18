@@ -1,5 +1,6 @@
 using Niobium.Finance;
 using Niobium.Invoicing;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Niobium.Store.Domains
 {
@@ -25,9 +26,9 @@ namespace Niobium.Store.Domains
                 Subject = InvoiceItemSubject,
                 Description = entity.Name,
                 Quantity = quantity,
-                UnitPriceCents = entity.Price,
+                UnitPriceCents = (entity.Price * 10000) / (10000 + entity.TaxRate),
                 UnitPriceCurrency = entity.Currency,
-                LineTotalCents = entity.Price * quantity,
+                LineTotalCents = (entity.Price * quantity * 10000) / (10000 + entity.TaxRate),
                 LineTotalCurrency = entity.Currency
             };
         }
