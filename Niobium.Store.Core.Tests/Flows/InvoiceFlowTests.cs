@@ -87,10 +87,18 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = invoice.Billee.Name.Should().Be("Alice");
             _ = invoice.Billee.Email.Should().Be("alice@example.com");
 
-            // Items
-            _ = invoice.InvoiceItems.Should().HaveCount(2);
-            var line1 = invoice.InvoiceItems[0];
-            var line2 = invoice.InvoiceItems[1];
+            // Items include shipping + purchases
+            _ = invoice.InvoiceItems.Should().HaveCount(3);
+            var shipping = invoice.InvoiceItems.Single(i => i.Subject == "Shipping");
+            _ = shipping.ID.Should().Be(invoice.InvoiceID);
+
+            var purchases = invoice.InvoiceItems.Where(i => i.Subject == "Purchase").OrderBy(i => i.ID).ToList();
+            _ = purchases.Should().HaveCount(2);
+
+            var line1 = purchases[0];
+            var line2 = purchases[1];
+
+            // First purchase corresponds to listing 1001
             _ = line1.Description.Should().Be("Widget A");
             _ = line1.Quantity.Should().Be(2);
             _ = line1.UnitPriceCents.Should().Be(500);
@@ -99,6 +107,7 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = line1.LineTotalCurrency.Should().Be("USD");
             _ = line1.ID.Should().Be(invoice.InvoiceID + 1001);
 
+            // Second purchase corresponds to listing 2002
             _ = line2.Description.Should().Be("Widget B");
             _ = line2.Quantity.Should().Be(1);
             _ = line2.UnitPriceCents.Should().Be(700);
@@ -249,12 +258,12 @@ namespace Niobium.Store.Core.Tests.Flows
             promotionRepo.VerifyNoOtherCalls();
         }
 
-        // Scenario: Empty cart produces a header-only invoice (current behavior)
+        // Scenario: Empty cart produces an invoice with shipping only
         // Given: An order with no cart items
         // When: The invoice is issued
-        // Then: A single message is enqueued with zero invoice items
+        // Then: A single message is enqueued with a single shipping item
         [TestMethod]
-        public async Task Empty_cart_enqueues_header_only_invoice()
+        public async Task Empty_cart_enqueues_shipping_only_invoice()
         {
             var tenant = Guid.NewGuid();
             var customer = Guid.NewGuid();
@@ -281,16 +290,17 @@ namespace Niobium.Store.Core.Tests.Flows
             await flow.RunAsync(order, CancellationToken.None);
 
             _ = captured.Should().NotBeNull();
-            _ = captured!.Value.InvoiceItems.Should().BeEmpty();
+            _ = captured!.Value.InvoiceItems.Should().HaveCount(1);
+            _ = captured!.Value.InvoiceItems.Single().Subject.Should().Be("Shipping");
             promotionRepo.VerifyNoOtherCalls();
         }
 
-        // Scenario: Sequencing of invoice item IDs is deterministic and follows cart order
+        // Scenario: Purchase item IDs are deterministic and based on listing ID; shipping uses invoice ID
         // Given: An order with three items in a defined order
         // When: The invoice is issued
-        // Then: Invoice item IDs are invoiceID + 0/1/2 in the same order
+        // Then: Purchase invoice item IDs are invoiceID + listingId; shipping item ID is invoiceID
         [TestMethod]
-        public async Task Invoice_item_ids_follow_cart_sequence()
+        public async Task Invoice_item_ids_follow_listing_id_and_shipping_uses_invoice_id()
         {
             var tenant = Guid.NewGuid();
             var customer = Guid.NewGuid();
@@ -332,11 +342,134 @@ namespace Niobium.Store.Core.Tests.Flows
 
             _ = captured.Should().NotBeNull();
             var invoice = captured!.Value;
-            _ = invoice.InvoiceItems.Should().HaveCount(3);
-            _ = invoice.InvoiceItems[0].ID.Should().Be(invoice.InvoiceID + 1);
-            _ = invoice.InvoiceItems[1].ID.Should().Be(invoice.InvoiceID + 2);
-            _ = invoice.InvoiceItems[2].ID.Should().Be(invoice.InvoiceID + 3);
+            var shipping = invoice.InvoiceItems.Single(i => i.Subject == "Shipping");
+            _ = shipping.ID.Should().Be(invoice.InvoiceID);
+
+            var purchases = invoice.InvoiceItems.Where(i => i.Subject == "Purchase").ToList();
+            _ = purchases.Should().HaveCount(3);
+            _ = purchases.Any(i => i.ID == invoice.InvoiceID + 1).Should().BeTrue();
+            _ = purchases.Any(i => i.ID == invoice.InvoiceID + 2).Should().BeTrue();
+            _ = purchases.Any(i => i.ID == invoice.InvoiceID + 3).Should().BeTrue();
             promotionRepo.VerifyNoOtherCalls();
+        }
+
+        // Scenario: BUY1GET1FREE promotion adds a discount line to the invoice
+        // Given: Cart contains listing 1 (eligible) and coupon BUY1GET1FREE
+        // When: InvoiceFlow runs
+        // Then: A discount line is appended reflecting -1 quantity at unit price
+        [TestMethod]
+        public async Task Promotion_buy1get1free_adds_discount_line_to_invoice()
+        {
+            var tenant = Guid.NewGuid();
+            var customer = Guid.NewGuid();
+            var order = BuildOrder(
+                tenant, customer, DateTimeOffset.UtcNow.AddMinutes(-5), currency: "USD", settled: 0,
+                items: [new CartItem { Listing = 1, Option = "Default", Quantity = 2 }],
+                billingName: "Henry", email: "henry@example.com");
+            order.Coupon = "BUY1GET1FREE";
+
+            var orderDomain = BuildInitializedOrderDomain(order, Guid.NewGuid());
+
+            var listing = BuildListing(1, "Default", name: "Thing", price: 500, currency: "USD", taxRate: 0, taxKind: 0);
+            var listingDomain = BuildInitializedListingDomain(listing);
+
+            var orderRepo = new Mock<IDomainRepository<OrderDomain, Order>>(MockBehavior.Strict);
+            _ = orderRepo.Setup(r => r.GetAsync(order, It.IsAny<CancellationToken>())).ReturnsAsync(orderDomain);
+
+            var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
+            _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(1), Listing.BuildRowKey("Default"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(listingDomain);
+
+            var promoRepo = new Mock<IDomainRepository<PromotionDomain, Promotion>>(MockBehavior.Strict);
+            var promotion = new Promotion { Tenant = tenant, Code = "BUY1GET1FREE" };
+            _ = promoRepo.Setup(r => r.GetAsync(It.Is<Promotion>(p => p.Tenant == tenant && p.Code == "BUY1GET1FREE"), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(BuildInitializedPromotionDomain(promotion));
+
+            var broker = new Mock<IMessagingBroker<IssueInvoiceCommand>>(MockBehavior.Strict);
+            MessagingEntry<IssueInvoiceCommand>? captured = null;
+            _ = broker.Setup(b => b.EnqueueAsync(It.IsAny<IEnumerable<MessagingEntry<IssueInvoiceCommand>>>(), It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<MessagingEntry<IssueInvoiceCommand>>, CancellationToken>((m, _) => captured = m.Single())
+                .Returns(Task.CompletedTask);
+
+            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, promoRepo.Object, listingRepo.Object);
+            await flow.RunAsync(order, CancellationToken.None);
+
+            _ = captured.Should().NotBeNull();
+            var invoice = captured!.Value;
+            _ = invoice.InvoiceItems.Should().HaveCount(3); // 1 shipping + 1 base + 1 discount
+            var baseLine = invoice.InvoiceItems.First(i => i.Subject == "Purchase" && i.Description == "Thing");
+            var discount = invoice.InvoiceItems.First(i => i.Subject == "Discount");
+            _ = discount.Description.Should().Contain("Buy 1 Get 1 Free");
+            _ = discount.Quantity.Should().Be(-1);
+            _ = discount.UnitPriceCents.Should().Be(baseLine.UnitPriceCents);
+            _ = discount.LineTotalCents.Should().Be(-baseLine.UnitPriceCents);
+        }
+
+        // Scenario: BUY2GET3FREE promotion adds discount and gift lines to the invoice
+        // Given: Cart contains listing 1 and gift listing 2 and coupon BUY2GET3FREE
+        // When: InvoiceFlow runs
+        // Then: Both a discount line (-3 qty) and a gift line (qty 4 at zero price) are appended
+        [TestMethod]
+        public async Task Promotion_buy2get3free_adds_discount_and_gift_lines_to_invoice()
+        {
+            var tenant = Guid.NewGuid();
+            var customer = Guid.NewGuid();
+            var order = BuildOrder(
+                tenant, customer, DateTimeOffset.UtcNow.AddMinutes(-5), currency: "USD", settled: 0,
+                items: [
+                    new CartItem { Listing = 1, Option = "Default", Quantity = 5 },
+                    new CartItem { Listing = 2, Option = "Default", Quantity = 4 }
+                ],
+                billingName: "Ivy", email: "ivy@example.com");
+            order.Coupon = "BUY2GET3FREE";
+
+            var orderDomain = BuildInitializedOrderDomain(order, Guid.NewGuid());
+
+            var listing1 = BuildListing(1, "Default", name: "Main Item", price: 500, currency: "USD", taxRate: 0, taxKind: 0);
+            var listing2 = BuildListing(2, "Default", name: "Gift Item", price: 0, currency: "USD", taxRate: 0, taxKind: 0);
+            var listingDomain1 = BuildInitializedListingDomain(listing1);
+            var listingDomain2 = BuildInitializedListingDomain(listing2);
+
+            var orderRepo = new Mock<IDomainRepository<OrderDomain, Order>>(MockBehavior.Strict);
+            _ = orderRepo.Setup(r => r.GetAsync(order, It.IsAny<CancellationToken>())).ReturnsAsync(orderDomain);
+
+            var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
+            _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(1), Listing.BuildRowKey("Default"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(listingDomain1);
+            _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(2), Listing.BuildRowKey("Default"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(listingDomain2);
+
+            var promoRepo = new Mock<IDomainRepository<PromotionDomain, Promotion>>(MockBehavior.Strict);
+            var promotion = new Promotion { Tenant = tenant, Code = "BUY2GET3FREE" };
+            _ = promoRepo.Setup(r => r.GetAsync(It.Is<Promotion>(p => p.Tenant == tenant && p.Code == "BUY2GET3FREE"), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(BuildInitializedPromotionDomain(promotion));
+
+            var broker = new Mock<IMessagingBroker<IssueInvoiceCommand>>(MockBehavior.Strict);
+            MessagingEntry<IssueInvoiceCommand>? captured = null;
+            _ = broker.Setup(b => b.EnqueueAsync(It.IsAny<IEnumerable<MessagingEntry<IssueInvoiceCommand>>>(), It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<MessagingEntry<IssueInvoiceCommand>>, CancellationToken>((m, _) => captured = m.Single())
+                .Returns(Task.CompletedTask);
+
+            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, promoRepo.Object, listingRepo.Object);
+            await flow.RunAsync(order, CancellationToken.None);
+
+            _ = captured.Should().NotBeNull();
+            var invoice = captured!.Value;
+            _ = invoice.InvoiceItems.Should().HaveCount(5); // 2 base + 1 discount + 1 gift + 1 shipping
+
+            var baseLine = invoice.InvoiceItems.First(i => i.Subject == "Purchase" && i.Description == "Main Item");
+            var giftLine = invoice.InvoiceItems.First(i => i.Subject == "Gift");
+            var discount = invoice.InvoiceItems.First(i => i.Subject == "Discount");
+
+            _ = discount.Description.Should().Contain("Buy 2 Get 3 Free");
+            _ = discount.Quantity.Should().Be(-3);
+            _ = discount.UnitPriceCents.Should().Be(baseLine.UnitPriceCents);
+            _ = discount.LineTotalCents.Should().Be(-3 * baseLine.UnitPriceCents);
+
+            _ = giftLine.Description.Should().Contain("Promotional Gift");
+            _ = giftLine.Quantity.Should().Be(-4);
+            _ = giftLine.UnitPriceCents.Should().Be(0);
+            _ = giftLine.LineTotalCents.Should().Be(0);
         }
 
         // --- Builders and helpers (keep tests readable and domains real) ---
@@ -424,6 +557,15 @@ namespace Niobium.Store.Core.Tests.Flows
             var repo = new Mock<IRepository<Listing>>(MockBehavior.Loose);
             var handlers = Array.Empty<IDomainEventHandler<IDomain<Listing>>>();
             return new ListingDomain(new Lazy<IRepository<Listing>>(() => repo.Object), handlers);
+        }
+
+        private static PromotionDomain BuildInitializedPromotionDomain(Promotion promotion)
+        {
+            var repo = new Mock<IRepository<Promotion>>(MockBehavior.Loose);
+            var handlers = Array.Empty<IDomainEventHandler<IDomain<Promotion>>>();
+            var domain = new PromotionDomain(new Lazy<IRepository<Promotion>>(() => repo.Object), handlers);
+            InitializeDomain(domain, promotion);
+            return domain;
         }
 
         private static void InitializeDomain<TDomain, TEntity>(TDomain domain, TEntity entity)

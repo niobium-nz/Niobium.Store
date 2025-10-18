@@ -6,7 +6,7 @@ namespace Niobium.Store
     public class QuoteResponse : QuoteRequest
     {
         [method: SetsRequiredMembers]
-        public QuoteResponse(QuoteRequest request, List<PricedCartItem> listingQuotes, TaxableAmount shippingQuote)
+        public QuoteResponse(QuoteRequest request, List<PricedCartItem> listingQuotes, ShippingQuote shippingQuote)
         {
             this.ID = request.ID;
             this.Cart = [];
@@ -16,7 +16,8 @@ namespace Niobium.Store
             this.Coupon = request.Coupon;
 
             this.Quote = listingQuotes;
-            this.ShippingCost = shippingQuote.Amount;
+            this.ShippingCost = shippingQuote.Cost.Amount;
+            this.ShippingDescription = shippingQuote.Description;
             this.Discount = 0;
 
             var baseline = listingQuotes.First();
@@ -27,6 +28,8 @@ namespace Niobium.Store
         public required List<PricedCartItem> Quote { get; set; }
 
         public long ShippingCost { get; set; }
+
+        public string ShippingDescription { get; set; }
 
         public long Discount { get; set; }
 

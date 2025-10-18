@@ -9,14 +9,18 @@ namespace Niobium.Store.Domains
         ILogger<ShippingOptionDomain> logger)
         : GenericDomain<ShippingOption>(repository, eventHandlers)
     {
-        public async Task<TaxableAmount> QuoteAsync(QuoteRequest request, Tax tax, CancellationToken cancellationToken = default)
+        public async Task<ShippingQuote> QuoteAsync(QuoteRequest request, Tax tax, CancellationToken cancellationToken = default)
         {
             await this.ValidateAsync(request.ShippingCountry, cancellationToken);
             var entity = await this.GetEntityAsync(cancellationToken);
-            return new TaxableAmount
+            return new ShippingQuote
             {
-                Amount = new Amount { Cents = entity.Price, Currency = entity.Currency },
-                Tax = tax,
+                Cost = new TaxableAmount
+                {
+                    Amount = new Amount { Cents = entity.Price, Currency = entity.Currency },
+                    Tax = tax,
+                },
+                Description = entity.Description
             };
         }
 

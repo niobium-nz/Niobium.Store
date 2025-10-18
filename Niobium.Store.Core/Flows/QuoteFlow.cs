@@ -33,16 +33,16 @@ namespace Niobium.Store.Flows
             var listingTax = baseline.TaxInfo;
             var shippingQuote = await shipping.QuoteAsync(request, listingTax, cancellationToken);
 
-            if (shippingQuote.Amount.Currency != listingCurrency)
+            if (shippingQuote.Cost.Amount.Currency != listingCurrency)
             {
-                var error = $"Shipping {request.Shipping} and cart are not consistent on currency: {shippingQuote.Amount.Currency} vs {listingCurrency}";
+                var error = $"Shipping {request.Shipping} and cart are not consistent on currency: {shippingQuote.Cost.Amount.Currency} vs {listingCurrency}";
                 logger.LogError(error);
                 throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }
 
-            if (shippingQuote.Tax != listingTax)
+            if (shippingQuote.Cost.Tax != listingTax)
             {
-                var error = $"Shipping {request.Shipping} and cart are not consistent on tax: {shippingQuote.Tax} vs {listingTax}";
+                var error = $"Shipping {request.Shipping} and cart are not consistent on tax: {shippingQuote.Cost.Tax} vs {listingTax}";
                 logger.LogError(error);
                 throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }

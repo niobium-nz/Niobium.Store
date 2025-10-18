@@ -25,6 +25,7 @@ namespace Niobium.Store.Domains
         {
             var newOrder = CreateNewOrder(request);
             newOrder.ShippingCost = quote.ShippingCost;
+            newOrder.Shipping = quote.Shipping;
             newOrder.TaxKind = (int)quote.TaxInfo.Kind;
             newOrder.TaxRate = quote.TaxInfo.Rate;
             newOrder.IP = clientIP;
@@ -173,7 +174,7 @@ namespace Niobium.Store.Domains
         public async Task<IssueInvoiceCommand> IssueInvoiceAsync(CancellationToken cancellationToken = default)
         {
             var entity = await this.GetEntityAsync(cancellationToken);
-            return new IssueInvoiceCommand
+            var invoice = new IssueInvoiceCommand
             {
                 ID = entity.GetFullID(),
                 InvoiceID = entity.GetID(),
@@ -210,6 +211,22 @@ namespace Niobium.Store.Domains
                     Zipcode = entity.BillingPostcode,
                 }
             };
+
+            var shippingCostBeforeTax = (entity.ShippingCost * 10000) / (10000 + entity.TaxRate);
+            invoice.InvoiceItems.Add(new InvoiceItem
+            {
+                ID = invoice.InvoiceID,
+                Invoice = entity.Created,
+                Subject = "Shipping",
+                Description = $"Shipping cost for order {entity.GetID()}",
+                Quantity = 1,
+                UnitPriceCents = shippingCostBeforeTax,
+                UnitPriceCurrency = entity.Currency,
+                LineTotalCents = shippingCostBeforeTax,
+                LineTotalCurrency = entity.Currency
+            });
+
+            return invoice;
         }
 
         private static Order CreateNewOrder(OrderRequest request) =>

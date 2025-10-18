@@ -25,6 +25,8 @@ namespace Niobium.Store
 
         public long Discount { get; set; }
 
+        public long Shipping { get; set; }
+
         public long ShippingCost { get; set; }
 
         public long Tax { get; set; }

@@ -21,6 +21,7 @@ namespace Niobium.Store
             Total = order.Total,
             Discount = order.Discount,
             ShippingCost = order.ShippingCost,
+            Shipping = order.Shipping,
             Tax = order.Tax,
             TaxRate = order.TaxRate,
             TaxKind = order.TaxKind,
