@@ -182,7 +182,7 @@ namespace Niobium.Store.Domains
                 BilleeID = entity.Customer,
                 BillerID = entity.Tenant,
                 BillingPeriodStartDay = DateTimeOffset.UtcNow,
-                DueBy = DateTimeOffset.UtcNow,
+                DueBy = null,
                 InvoiceCycle = (int)InvoiceCycle.Once,
                 NotifyBillee = true,
                 Reference = entity.GetID().ToString(),
