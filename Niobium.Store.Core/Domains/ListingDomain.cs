@@ -1,3 +1,4 @@
+using System.Globalization;
 using Niobium.Finance;
 using Niobium.Invoicing;
 
@@ -25,9 +26,9 @@ namespace Niobium.Store.Domains
                 Subject = InvoiceItemSubject,
                 Description = entity.Name,
                 Quantity = quantity,
-                UnitPriceCents = entity.Price * 10000 / (10000 + entity.TaxRate),
+                UnitPriceCents = (long)Math.Round(((entity.Price * 10000) / (10000m + entity.TaxRate)), 0, MidpointRounding.AwayFromZero),
                 UnitPriceCurrency = entity.Currency,
-                LineTotalCents = entity.Price * quantity * 10000 / (10000 + entity.TaxRate),
+                LineTotalCents = (long)Math.Round(((entity.Price * quantity * 10000) / (10000m + entity.TaxRate)), 0, MidpointRounding.AwayFromZero),
                 LineTotalCurrency = entity.Currency
             };
         }

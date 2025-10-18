@@ -29,6 +29,8 @@ namespace Niobium.Store
 
         public long ShippingCost { get; set; }
 
+        public string ShippingDescription { get; set; }
+
         public long Tax { get; set; }
 
         public long TaxRate { get; set; }

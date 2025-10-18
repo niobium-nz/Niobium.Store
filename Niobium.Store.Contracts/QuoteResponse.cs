@@ -39,7 +39,7 @@ namespace Niobium.Store
 
         public Currency Currency { get; set; }
 
-        public long Tax => Total - Total * 10000 / (10000 + TaxInfo.Rate);
+        public long Tax => Total - (long)Math.Round(((Total * 10000) / (10000m + TaxInfo.Rate)), 0, MidpointRounding.AwayFromZero);
 
         public long Subtotal => this.Quote.Sum(x => x.LineTotal);
 

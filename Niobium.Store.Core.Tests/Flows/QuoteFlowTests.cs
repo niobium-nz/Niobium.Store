@@ -205,7 +205,7 @@ namespace Niobium.Store.Core.Tests.Flows
             item.LineTotal.Should().Be(1000);
             quote.DiscountDescription.Values.Should().Contain("Buy 1 Get 1 Free");
             quote.Discount.Should().Be(500);
-            quote.Tax.Should().Be(128);
+            quote.Tax.Should().Be(127);
             quote.Total.Should().Be(1400);
         }
 

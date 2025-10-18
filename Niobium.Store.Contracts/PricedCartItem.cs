@@ -27,7 +27,7 @@ namespace Niobium.Store
         /// <summary>
         /// The tax amount per unit in cents.
         /// </summary>
-        public long Tax => Now - Now * 10000 / (10000 + TaxInfo.Rate);
+        public long Tax => Now - (long)Math.Round(((Now * 10000) / (10000m + TaxInfo.Rate)), 0, MidpointRounding.AwayFromZero);
 
         /// <summary>
         /// The total amount based on <see cref="Now"/> include tax for the current line in cents.
@@ -37,7 +37,7 @@ namespace Niobium.Store
         /// <summary>
         /// The total tax amount for the current line in cents.
         /// </summary>
-        public long LineTax => LineTotal - LineTotal * 10000 / (10000 + TaxInfo.Rate);
+        public long LineTax => LineTotal - (long)Math.Round(((LineTotal * 10000) / (10000m + TaxInfo.Rate)), 0, MidpointRounding.AwayFromZero);
 
         /// <summary>
         /// The total discount amount include tax for the current line in cents.

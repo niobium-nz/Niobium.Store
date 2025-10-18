@@ -26,6 +26,7 @@ namespace Niobium.Store.Domains
             var newOrder = CreateNewOrder(request);
             newOrder.ShippingCost = quote.ShippingCost;
             newOrder.Shipping = quote.Shipping;
+            newOrder.ShippingDescription = quote.ShippingDescription;
             newOrder.TaxKind = (int)quote.TaxInfo.Kind;
             newOrder.TaxRate = quote.TaxInfo.Rate;
             newOrder.IP = clientIP;
@@ -212,13 +213,13 @@ namespace Niobium.Store.Domains
                 }
             };
 
-            var shippingCostBeforeTax = (entity.ShippingCost * 10000) / (10000 + entity.TaxRate);
+            var shippingCostBeforeTax = (long)Math.Round(entity.ShippingCost * 10000 / (10000m + entity.TaxRate), 0, MidpointRounding.AwayFromZero);
             invoice.InvoiceItems.Add(new InvoiceItem
             {
                 ID = invoice.InvoiceID,
                 Invoice = entity.Created,
                 Subject = "Shipping",
-                Description = $"Shipping cost for order {entity.GetID()}",
+                Description = entity.ShippingDescription,
                 Quantity = 1,
                 UnitPriceCents = shippingCostBeforeTax,
                 UnitPriceCurrency = entity.Currency,
