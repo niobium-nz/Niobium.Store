@@ -204,7 +204,7 @@ namespace Niobium.Store.Core.Tests.Flows
             item.Now.Should().Be(500);
             item.Quantity.Should().Be(2);
             item.LineTotal.Should().Be(1000);
-            quote.DiscountDescription.Should().Contain("Buy 1 Get 1 Free");
+            quote.DiscountDescription.Values.Should().Contain("Buy 1 Get 1 Free");
             quote.Discount.Should().Be(500);
             quote.Tax.Should().Be(140);
             quote.GrandTotal.Should().Be(1540);
@@ -261,8 +261,8 @@ namespace Niobium.Store.Core.Tests.Flows
             quote.Tax.Should().Be(190);
             quote.GrandTotal.Should().Be(2090);
 
-            quote.DiscountDescription.Should().Contain("Buy 2 Get 3 Free");
-            quote.DiscountDescription.Should().Contain("Get 4 Hair Remover Free");
+            quote.DiscountDescription.Values.Should().Contain("Buy 2 Get 3 Free");
+            quote.DiscountDescription.Values.Should().Contain("Get 4 Hair Remover Free");
         }
 
         // Scenario: Coupon present but not applicable to current cart

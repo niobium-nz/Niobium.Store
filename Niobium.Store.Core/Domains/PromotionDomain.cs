@@ -27,7 +27,10 @@ namespace Niobium.Store.Domains
                 }
 
                 quote.Discount = (wasQuantity - newQuantity) * qualifiedItem.Now;
-                quote.DiscountDescription = ["Buy 1 Get 1 Free"];
+                quote.DiscountDescription = new Dictionary<int, string> 
+                {
+                    { PromotionalListing_BUY1GET1FREE, "Buy 1 Get 1 Free" }
+                };
                 quote.Quote.RemoveAll(i => i.Listing == PromotionalListing_BUY2GET3FREE_GIFT);
             }
             else if (this.RowKey == "BUY2GET3FREE")
@@ -46,13 +49,16 @@ namespace Niobium.Store.Domains
                 }
 
                 quote.Discount = (wasQuantity - newQuantity) * qualifiedItem.Now;
-                quote.DiscountDescription = ["Buy 2 Get 3 Free"];
+                quote.DiscountDescription = new Dictionary<int, string>
+                {
+                    { PromotionalListing_BUY2GET3FREE, "Buy 2 Get 3 Free" }
+                };
 
                 var giftItem = quote.Quote.FirstOrDefault(i => i.Listing == PromotionalListing_BUY2GET3FREE_GIFT);
                 if (giftItem != null)
                 {
                     giftItem.Quantity = 4;
-                    quote.DiscountDescription.Add("Get 4 Hair Remover Free");
+                    quote.DiscountDescription.Add(PromotionalListing_BUY2GET3FREE_GIFT, "Get 4 Hair Remover Free");
                 }
             }
             else

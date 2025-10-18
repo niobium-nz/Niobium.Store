@@ -34,7 +34,7 @@ namespace Niobium.Store
 
         public long Discount { get; set; }
 
-        public List<string> DiscountDescription { get; set; } = [];
+        public Dictionary<int, string> DiscountDescription { get; set; } = [];
 
         public long Tax { get; set; }
 
