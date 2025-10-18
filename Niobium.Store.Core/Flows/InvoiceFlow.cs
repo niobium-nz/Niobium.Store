@@ -7,6 +7,7 @@ namespace Niobium.Store.Flows
     internal class InvoiceFlow(
         IMessagingBroker<IssueInvoiceCommand> broker,
         IDomainRepository<OrderDomain, Order> orderRepo,
+        IDomainRepository<PromotionDomain, Promotion> promotionRepo,
         IDomainRepository<ListingDomain, Listing> listingRepo)
         : IFlow
     {
@@ -16,16 +17,21 @@ namespace Niobium.Store.Flows
             var invoice = await domain.IssueInvoiceAsync(cancellationToken);
 
             var cart = order.GetCart();
-            var i = 0;
             foreach (var item in cart)
             {
                 var listing = await listingRepo.GetAsync(
                     Listing.BuildPartitionKey(item.Listing),
                     Listing.BuildRowKey(item.Option),
                     cancellationToken: cancellationToken);
-                var invoiceItem = await listing.BuildInvoiceItemAsync(invoice.InvoiceID, i, item.Quantity, cancellationToken);
+                var invoiceItem = await listing.BuildInvoiceItemAsync(invoice.InvoiceID, item.Quantity, cancellationToken);
                 invoice.InvoiceItems.Add(invoiceItem);
-                i++;
+            }
+
+            if (order.Coupon != null)
+            {
+                var promotion = new Promotion { Tenant = order.Tenant, Code = order.Coupon.Trim() };
+                var promoDomain = await promotionRepo.GetAsync(promotion, cancellationToken: cancellationToken);
+                await promoDomain.ApplyAsync(invoice, cancellationToken);
             }
 
             await broker.EnqueueAsync(new MessagingEntry<IssueInvoiceCommand>

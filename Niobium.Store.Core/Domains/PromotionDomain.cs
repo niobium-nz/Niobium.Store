@@ -1,3 +1,5 @@
+using Niobium.Invoicing;
+
 namespace Niobium.Store.Domains
 {
     public class PromotionDomain(
@@ -27,7 +29,7 @@ namespace Niobium.Store.Domains
                 }
 
                 quote.Discount = (wasQuantity - newQuantity) * qualifiedItem.Now;
-                quote.DiscountDescription = new Dictionary<int, string> 
+                quote.DiscountDescription = new Dictionary<int, string>
                 {
                     { PromotionalListing_BUY1GET1FREE, "Buy 1 Get 1 Free" }
                 };
@@ -64,6 +66,67 @@ namespace Niobium.Store.Domains
             else
             {
                 quote.Quote.RemoveAll(i => i.Listing == PromotionalListing_BUY2GET3FREE_GIFT);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task ApplyAsync(IssueInvoiceCommand invoice, CancellationToken cancellationToken = default)
+        {
+            if (this.RowKey == "BUY1GET1FREE")
+            {
+                var item = invoice.InvoiceItems.FirstOrDefault(i => i.ID == Int32.Parse(invoice.ID) + PromotionalListing_BUY1GET1FREE);
+                if (item != null)
+                {
+                    invoice.InvoiceItems.Add(new InvoiceItem
+                    {
+                        ID = invoice.InvoiceItems.Max(i => i.ID) + 1,
+                        Invoice = item.Invoice,
+                        Subject = "Discount",
+                        Description = $"Promotion discount for {item.Description} - Buy 1 Get 1 Free",
+                        Quantity = -1,
+                        UnitPriceCents = item.UnitPriceCents,
+                        UnitPriceCurrency = item.UnitPriceCurrency,
+                        LineTotalCents = -item.UnitPriceCents,
+                        LineTotalCurrency = item.LineTotalCurrency
+                    });
+                }
+            }
+            else if (this.RowKey == "BUY2GET3FREE")
+            {
+                var item = invoice.InvoiceItems.FirstOrDefault(i => i.ID == Int32.Parse(invoice.ID) + PromotionalListing_BUY2GET3FREE);
+                if (item != null)
+                {
+                    invoice.InvoiceItems.Add(new InvoiceItem
+                    {
+                        ID = invoice.InvoiceItems.Max(i => i.ID) + 1,
+                        Invoice = item.Invoice,
+                        Subject = "Discount",
+                        Description = $"Promotion discount for {item.Description} - Buy 2 Get 3 Free",
+                        Quantity = -3,
+                        UnitPriceCents = item.UnitPriceCents,
+                        UnitPriceCurrency = item.UnitPriceCurrency,
+                        LineTotalCents = -3 * item.UnitPriceCents,
+                        LineTotalCurrency = item.LineTotalCurrency
+                    });
+                }
+
+                var giftItem = invoice.InvoiceItems.FirstOrDefault(i => i.ID == Int32.Parse(invoice.ID) + PromotionalListing_BUY2GET3FREE_GIFT);
+                if (giftItem != null)
+                {
+                    invoice.InvoiceItems.Add(new InvoiceItem
+                    {
+                        ID = invoice.InvoiceItems.Max(i => i.ID) + 1,
+                        Invoice = giftItem.Invoice,
+                        Subject = "Gift",
+                        Description = $"Promotional Gift for {giftItem.Description}",
+                        Quantity = 4,
+                        UnitPriceCents = 0,
+                        UnitPriceCurrency = giftItem.UnitPriceCurrency,
+                        LineTotalCents = 0,
+                        LineTotalCurrency = giftItem.LineTotalCurrency
+                    });
+                }
             }
 
             return Task.CompletedTask;

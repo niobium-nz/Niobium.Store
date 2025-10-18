@@ -11,7 +11,7 @@ namespace Niobium.Store.Domains
     {
         private const string InvoiceItemSubject = "Online Order";
 
-        public async Task<InvoiceItem> BuildInvoiceItemAsync(long invoiceID, int sequence, int quantity, CancellationToken cancellationToken = default)
+        public async Task<InvoiceItem> BuildInvoiceItemAsync(long invoiceID, int quantity, CancellationToken cancellationToken = default)
         {
             if (quantity <= 0)
             {
@@ -21,7 +21,7 @@ namespace Niobium.Store.Domains
             var entity = await this.GetEntityAsync(cancellationToken);
             return new InvoiceItem
             {
-                ID = invoiceID + sequence,
+                ID = invoiceID + entity.ID,
                 Invoice = Invoice.ParseID(invoiceID),
                 Subject = InvoiceItemSubject,
                 Description = entity.Name,

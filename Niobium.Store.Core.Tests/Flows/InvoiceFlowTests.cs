@@ -60,6 +60,8 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(2002), Listing.BuildRowKey("std"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(listingDomain2);
 
+            var promotionRepo = new Mock<IDomainRepository<PromotionDomain, Promotion>>(MockBehavior.Strict);
+
             // Broker to capture the outgoing message
             var broker = new Mock<IMessagingBroker<IssueInvoiceCommand>>(MockBehavior.Strict);
             MessagingEntry<IssueInvoiceCommand>? captured = null;
@@ -67,7 +69,7 @@ namespace Niobium.Store.Core.Tests.Flows
                 .Callback<IEnumerable<MessagingEntry<IssueInvoiceCommand>>, CancellationToken>((m, _) => captured = m.Single())
                 .Returns(Task.CompletedTask);
 
-            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, listingRepo.Object);
+            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, promotionRepo.Object, listingRepo.Object);
 
             // When
             await flow.RunAsync(order, CancellationToken.None);
@@ -95,7 +97,7 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = line1.LineTotalCents.Should().Be(1000);
             _ = line1.UnitPriceCurrency.Should().Be("USD");
             _ = line1.LineTotalCurrency.Should().Be("USD");
-            _ = line1.ID.Should().Be(invoice.InvoiceID + 0);
+            _ = line1.ID.Should().Be(invoice.InvoiceID + 1001);
 
             _ = line2.Description.Should().Be("Widget B");
             _ = line2.Quantity.Should().Be(1);
@@ -103,13 +105,14 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = line2.LineTotalCents.Should().Be(700);
             _ = line2.UnitPriceCurrency.Should().Be("USD");
             _ = line2.LineTotalCurrency.Should().Be("USD");
-            _ = line2.ID.Should().Be(invoice.InvoiceID + 1);
+            _ = line2.ID.Should().Be(invoice.InvoiceID + 2002);
 
             // Repository scoping verification
             orderRepo.Verify(r => r.GetAsync(order, It.IsAny<CancellationToken>()), Times.Once);
             listingRepo.Verify(r => r.GetAsync(Listing.BuildPartitionKey(1001), Listing.BuildRowKey("default"), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
             listingRepo.Verify(r => r.GetAsync(Listing.BuildPartitionKey(2002), Listing.BuildRowKey("std"), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
             broker.Verify(b => b.EnqueueAsync(It.IsAny<IEnumerable<MessagingEntry<IssueInvoiceCommand>>>(), It.IsAny<CancellationToken>()), Times.Once);
+            promotionRepo.VerifyNoOtherCalls();
         }
 
         // Scenario: A cart item must have a positive quantity
@@ -139,13 +142,16 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(42), Listing.BuildRowKey("Default"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(listingDomain);
 
+            var promotionRepo = new Mock<IDomainRepository<PromotionDomain, Promotion>>(MockBehavior.Strict);
+
             var broker = new Mock<IMessagingBroker<IssueInvoiceCommand>>(MockBehavior.Strict);
 
-            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, listingRepo.Object);
+            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, promotionRepo.Object, listingRepo.Object);
 
             Func<Task> act = async () => await flow.RunAsync(order, CancellationToken.None);
             _ = await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
             broker.Verify(b => b.EnqueueAsync(It.IsAny<IEnumerable<MessagingEntry<IssueInvoiceCommand>>>(), It.IsAny<CancellationToken>()), Times.Never);
+            promotionRepo.VerifyNoOtherCalls();
         }
 
         // Scenario: Missing listing prevents invoicing
@@ -175,13 +181,16 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(7), Listing.BuildRowKey("x"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(uninitializedListingDomain);
 
+            var promotionRepo = new Mock<IDomainRepository<PromotionDomain, Promotion>>(MockBehavior.Strict);
+
             var broker = new Mock<IMessagingBroker<IssueInvoiceCommand>>(MockBehavior.Strict);
 
-            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, listingRepo.Object);
+            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, promotionRepo.Object, listingRepo.Object);
 
             Func<Task> act = async () => await flow.RunAsync(order, CancellationToken.None);
             _ = await act.Should().ThrowAsync<ApplicationException>().Where(e => e.ErrorCode == InternalError.NotFound);
             broker.Verify(b => b.EnqueueAsync(It.IsAny<IEnumerable<MessagingEntry<IssueInvoiceCommand>>>(), It.IsAny<CancellationToken>()), Times.Never);
+            promotionRepo.VerifyNoOtherCalls();
         }
 
         // Scenario: Header accuracy for a partially settled order
@@ -213,13 +222,15 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(5), Listing.BuildRowKey("std"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(listingDomain);
 
+            var promotionRepo = new Mock<IDomainRepository<PromotionDomain, Promotion>>(MockBehavior.Strict);
+
             var broker = new Mock<IMessagingBroker<IssueInvoiceCommand>>(MockBehavior.Strict);
             MessagingEntry<IssueInvoiceCommand>? captured = null;
             _ = broker.Setup(b => b.EnqueueAsync(It.IsAny<IEnumerable<MessagingEntry<IssueInvoiceCommand>>>(), It.IsAny<CancellationToken>()))
                 .Callback<IEnumerable<MessagingEntry<IssueInvoiceCommand>>, CancellationToken>((m, _) => captured = m.Single())
                 .Returns(Task.CompletedTask);
 
-            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, listingRepo.Object);
+            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, promotionRepo.Object, listingRepo.Object);
             await flow.RunAsync(order, CancellationToken.None);
 
             _ = captured.Should().NotBeNull();
@@ -234,6 +245,8 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = invoice.Billee.State.Should().BeNull();
             _ = invoice.Billee.Country.Should().Be("NZ");
             _ = invoice.Billee.Zipcode.Should().Be("1010");
+
+            promotionRepo.VerifyNoOtherCalls();
         }
 
         // Scenario: Empty cart produces a header-only invoice (current behavior)
@@ -257,17 +270,19 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = orderRepo.Setup(r => r.GetAsync(order, It.IsAny<CancellationToken>())).ReturnsAsync(orderDomain);
 
             var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
+            var promotionRepo = new Mock<IDomainRepository<PromotionDomain, Promotion>>(MockBehavior.Strict);
             var broker = new Mock<IMessagingBroker<IssueInvoiceCommand>>(MockBehavior.Strict);
             MessagingEntry<IssueInvoiceCommand>? captured = null;
             _ = broker.Setup(b => b.EnqueueAsync(It.IsAny<IEnumerable<MessagingEntry<IssueInvoiceCommand>>>(), It.IsAny<CancellationToken>()))
                 .Callback<IEnumerable<MessagingEntry<IssueInvoiceCommand>>, CancellationToken>((m, _) => captured = m.Single())
                 .Returns(Task.CompletedTask);
 
-            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, listingRepo.Object);
+            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, promotionRepo.Object, listingRepo.Object);
             await flow.RunAsync(order, CancellationToken.None);
 
             _ = captured.Should().NotBeNull();
             _ = captured!.Value.InvoiceItems.Should().BeEmpty();
+            promotionRepo.VerifyNoOtherCalls();
         }
 
         // Scenario: Sequencing of invoice item IDs is deterministic and follows cart order
@@ -304,21 +319,24 @@ namespace Niobium.Store.Core.Tests.Flows
             var orderRepo = new Mock<IDomainRepository<OrderDomain, Order>>(MockBehavior.Strict);
             _ = orderRepo.Setup(r => r.GetAsync(order, It.IsAny<CancellationToken>())).ReturnsAsync(orderDomain);
 
+            var promotionRepo = new Mock<IDomainRepository<PromotionDomain, Promotion>>(MockBehavior.Strict);
+
             var broker = new Mock<IMessagingBroker<IssueInvoiceCommand>>(MockBehavior.Strict);
             MessagingEntry<IssueInvoiceCommand>? captured = null;
             _ = broker.Setup(b => b.EnqueueAsync(It.IsAny<IEnumerable<MessagingEntry<IssueInvoiceCommand>>>(), It.IsAny<CancellationToken>()))
                 .Callback<IEnumerable<MessagingEntry<IssueInvoiceCommand>>, CancellationToken>((m, _) => captured = m.Single())
                 .Returns(Task.CompletedTask);
 
-            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, listingRepo.Object);
+            var flow = new InvoiceFlow(broker.Object, orderRepo.Object, promotionRepo.Object, listingRepo.Object);
             await flow.RunAsync(order, CancellationToken.None);
 
             _ = captured.Should().NotBeNull();
             var invoice = captured!.Value;
             _ = invoice.InvoiceItems.Should().HaveCount(3);
-            _ = invoice.InvoiceItems[0].ID.Should().Be(invoice.InvoiceID + 0);
-            _ = invoice.InvoiceItems[1].ID.Should().Be(invoice.InvoiceID + 1);
-            _ = invoice.InvoiceItems[2].ID.Should().Be(invoice.InvoiceID + 2);
+            _ = invoice.InvoiceItems[0].ID.Should().Be(invoice.InvoiceID + 1);
+            _ = invoice.InvoiceItems[1].ID.Should().Be(invoice.InvoiceID + 2);
+            _ = invoice.InvoiceItems[2].ID.Should().Be(invoice.InvoiceID + 3);
+            promotionRepo.VerifyNoOtherCalls();
         }
 
         // --- Builders and helpers (keep tests readable and domains real) ---
