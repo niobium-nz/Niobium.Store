@@ -13,6 +13,7 @@ namespace Niobium.Store
             this.Captcha = String.Empty;
             this.Shipping = request.Shipping;
             this.ShippingCountry = request.ShippingCountry;
+            this.Coupon = request.Coupon;
 
             this.Quote = listingQuotes;
             this.ShippingCost = shippingQuote.Amount;
