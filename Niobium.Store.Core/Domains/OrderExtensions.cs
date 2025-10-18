@@ -39,7 +39,7 @@ namespace Niobium.Store.Domains
                 { ToSnakeCaseUpper(nameof(order.Consignee)), order.Consignee },
                 { ToSnakeCaseUpper(nameof(order.Discount)), new Amount(order.Discount, order.Currency).ToString() },
                 { ToSnakeCaseUpper(nameof(order.Email)), order.Email },
-                { ToSnakeCaseUpper(nameof(order.GrandTotal)), new Amount(order.GrandTotal, order.Currency).ToString() },
+                { ToSnakeCaseUpper(nameof(order.Total)), new Amount(order.Total, order.Currency).ToString() },
                 { ToSnakeCaseUpper(nameof(order.Notes)), order.Notes ?? String.Empty },
                 { ToSnakeCaseUpper(nameof(order.Phone)), order.Phone ?? String.Empty },
                 { ToSnakeCaseUpper(nameof(order.ShippingAddressLine1)), order.ShippingAddressLine1 },
@@ -52,10 +52,9 @@ namespace Niobium.Store.Domains
                 { ToSnakeCaseUpper(nameof(order.ShippingStatus)), ((ShippingStatus)order.ShippingStatus).ToString() },
                 { ToSnakeCaseUpper(nameof(order.ShippingSuburb)), order.ShippingSuburb ?? String.Empty },
                 { ToSnakeCaseUpper(nameof(order.Status)), ((OrderStatus)order.Status).ToString() },
-                { ToSnakeCaseUpper(nameof(order.SubTotal)), new Amount(order.SubTotal, order.Currency).ToString() },
                 { ToSnakeCaseUpper(nameof(order.Tax)), new Amount(order.Tax, order.Currency).ToString() },
                 { ToSnakeCaseUpper(nameof(order.TaxKind)), ((TaxKind)order.TaxKind).ToString() },
-                { ToSnakeCaseUpper(nameof(order.TaxRate)), $"{order.TaxRate/100}%" },
+                { ToSnakeCaseUpper(nameof(order.TaxRate)), $"{order.TaxRate / 100}%" },
             };
         }
 

@@ -391,8 +391,6 @@ namespace Niobium.Store.Core.Tests.Flows
                 BillingCity = city,
                 BillingCountry = country,
                 BillingPostcode = "1010",
-                GrandTotal = 1000,
-                SubTotal = 900,
                 ShippingCost = 50,
                 Tax = 50,
                 ShippingState = state

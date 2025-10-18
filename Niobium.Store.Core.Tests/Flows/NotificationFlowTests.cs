@@ -224,8 +224,6 @@ namespace Niobium.Store.Core.Tests.Flows
                 BillingCity = "City",
                 BillingCountry = "US",
                 BillingPostcode = "10001",
-                SubTotal = 0,
-                GrandTotal = 0,
                 Discount = 0,
                 ShippingCost = 0,
                 Tax = 0,

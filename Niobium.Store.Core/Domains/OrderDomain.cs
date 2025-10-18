@@ -31,9 +31,8 @@ namespace Niobium.Store.Domains
             newOrder.Settled = 0;
             newOrder.Currency = quote.Currency;
             newOrder.Discount = quote.Discount;
-            newOrder.SubTotal = quote.SubTotal;
+            newOrder.Total = quote.Total;
             newOrder.Tax = quote.Tax;
-            newOrder.GrandTotal = quote.GrandTotal;
             newOrder.SetCart(request.Cart);
 
             _ = this.Initialize(newOrder);
@@ -63,7 +62,7 @@ namespace Niobium.Store.Domains
                 return Amount.Zero; // Order is not in a state that requires settlement.
             }
 
-            var due = entity.GrandTotal - entity.Settled;
+            var due = entity.Total - entity.Settled;
             if (due <= 0)
             {
                 return Amount.Zero; // No payment due, nothing to settle.
@@ -87,7 +86,7 @@ namespace Niobium.Store.Domains
                 entity.Transactions += $",{transaction.GetID()}";
             }
 
-            if (entity.Settled >= entity.GrandTotal)
+            if (entity.Settled >= entity.Total)
             {
                 if (entity.Status < (int)OrderStatus.Paid)
                 {
@@ -108,7 +107,7 @@ namespace Niobium.Store.Domains
             }
 
             await this.SaveAsync(force: true, cancellationToken: cancellationToken);
-            var result = entity.Settled >= entity.GrandTotal;
+            var result = entity.Settled >= entity.Total;
             var fullID = new StorageKey(this.PartitionKey, this.RowKey);
             logger.LogInformation($"Order {fullID} settled {result} by transaction: {transaction.GetID()}");
             return result;

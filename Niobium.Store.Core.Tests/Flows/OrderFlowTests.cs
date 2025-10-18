@@ -64,16 +64,15 @@ namespace Niobium.Store.Core.Tests.Flows
             _ = storedOrder.ShippingStatus.Should().Be((int)ShippingStatus.NotApplicable);
             _ = storedOrder.Settled.Should().Be(0);
             _ = storedOrder.Currency.Should().Be("USD");
-            _ = storedOrder.SubTotal.Should().Be(2 * 500);
+            _ = storedOrder.Total.Should().Be(2 * 500 + storedOrder.ShippingCost - storedOrder.Discount);
             _ = storedOrder.ShippingCost.Should().Be(900);
-            _ = storedOrder.GrandTotal.Should().Be(storedOrder.SubTotal + storedOrder.ShippingCost - storedOrder.Discount + storedOrder.Tax);
 
             // Charge request reflects the just-created order and quote
             _ = capturedCharge.Should().NotBeNull();
             _ = capturedCharge!.TargetKind.Should().Be(ChargeTargetKind.User);
             _ = capturedCharge.Target.Should().Be(request.ID.ToString());
             _ = capturedCharge.Tenant.Should().Be(tenant.ToString());
-            _ = capturedCharge.Amount.Should().Be(storedOrder.GrandTotal);
+            _ = capturedCharge.Amount.Should().Be(storedOrder.Total);
             _ = capturedCharge.Currency.ToString().Should().Be("USD");
             _ = capturedCharge.IP.Should().Be(clientIP);
         }

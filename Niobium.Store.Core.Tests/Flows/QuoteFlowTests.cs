@@ -29,8 +29,8 @@ namespace Niobium.Store.Core.Tests.Flows
                 new CartItem { Listing = 2, Option = "Default", Quantity = 1 });
 
             var usdTax = new Tax(rate: 1000, kind: TaxKind.GST); // example 10%
-            var listing1 = BuildListing(1, "Default", 500, "USD", usdTax.Rate, (int)usdTax.Kind);
-            var listing2 = BuildListing(2, "Default", 700, "USD", usdTax.Rate, (int)usdTax.Kind);
+            var listing1 = BuildListing(1, "Default", 500, 1000, "USD", usdTax.Rate, (int)usdTax.Kind);
+            var listing2 = BuildListing(2, "Default", 700, 1000, "USD", usdTax.Rate, (int)usdTax.Kind);
             var shipping = BuildShippingOption(10, 900, "USD", new[] { "US" });
 
             var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
@@ -52,8 +52,7 @@ namespace Niobium.Store.Core.Tests.Flows
 
             quote.Quote.Should().HaveCount(2);
             quote.ShippingCost.Should().Be(900);
-            quote.SubTotal.Should().Be(2 * 500 + 1 * 700);
-            quote.GrandTotal.Should().Be(quote.SubTotal + quote.ShippingCost - quote.Discount + quote.Tax);
+            quote.Total.Should().Be(2 * 500 + 1 * 700 + quote.ShippingCost - quote.Discount);
             quote.TaxInfo.Kind.Should().Be(usdTax.Kind);
             quote.TaxInfo.Rate.Should().Be(usdTax.Rate);
         }
@@ -70,8 +69,8 @@ namespace Niobium.Store.Core.Tests.Flows
                 new CartItem { Listing = 1, Option = "Default", Quantity = 1 });
 
             var usdTax = new Tax(rate: 1000, kind: TaxKind.GST);
-            var listing = BuildListing(1, "Default", 500, "USD", usdTax.Rate, (int)usdTax.Kind);
-            var shipping = BuildShippingOption(10, 900, "NZD", new[] { "US" }); // NZD creates mismatch
+            var listing = BuildListing(1, "Default", 500, 1000, "USD", usdTax.Rate, (int)usdTax.Kind);
+            var shipping = BuildShippingOption(10, 900, "NZD", ["US"]); // NZD creates mismatch
 
             var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
             _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(1), Listing.BuildRowKey("Default"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -107,9 +106,9 @@ namespace Niobium.Store.Core.Tests.Flows
             var vatTax = new Tax(rate: 1000, kind: TaxKind.VAT);
             var gstTax = new Tax(rate: 1000, kind: TaxKind.GST);
             // baseline tax will come from the first cart item (listing 1) -> VAT
-            var vatListing = BuildListing(1, "Default", 500, "USD", vatTax.Rate, (int)vatTax.Kind);
-            var gstListing = BuildListing(9, "Default", 600, "USD", gstTax.Rate, (int)gstTax.Kind);
-            var shipping = BuildShippingOption(10, 900, "USD", new[] { "US" });
+            var vatListing = BuildListing(1, "Default", 500, 1000, "USD", vatTax.Rate, (int)vatTax.Kind);
+            var gstListing = BuildListing(9, "Default", 600, 1000, "USD", gstTax.Rate, (int)gstTax.Kind);
+            var shipping = BuildShippingOption(10, 900, "USD", ["US"]);
 
             var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
             _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(1), Listing.BuildRowKey("Default"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -143,8 +142,8 @@ namespace Niobium.Store.Core.Tests.Flows
                 new CartItem { Listing = 1, Option = "Default", Quantity = 1 });
 
             var tax = new Tax(rate: 1000, kind: TaxKind.GST);
-            var listing = BuildListing(1, "Default", 500, "USD", tax.Rate, (int)tax.Kind);
-            var shipping = BuildShippingOption(10, 900, "USD", new[] { "US" }); // FR not supported
+            var listing = BuildListing(1, "Default", 500, 1000, "USD", tax.Rate, (int)tax.Kind);
+            var shipping = BuildShippingOption(10, 900, "USD", ["US"]); // FR not supported
 
             var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
             _ = listingRepo.Setup(r => r.GetAsync(Listing.BuildPartitionKey(1), Listing.BuildRowKey("Default"), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
@@ -177,8 +176,8 @@ namespace Niobium.Store.Core.Tests.Flows
             request.Coupon = "BUY1GET1FREE";
 
             var tax = new Tax(rate: 1000, kind: TaxKind.GST);
-            var listing = BuildListing(1, "Default", 500, "USD", tax.Rate, (int)tax.Kind);
-            var shipping = BuildShippingOption(10, 900, "USD", new[] { "US" });
+            var listing = BuildListing(1, "Default", 500, 1000, "USD", tax.Rate, (int)tax.Kind);
+            var shipping = BuildShippingOption(10, 900, "USD", ["US"]);
             var promotion = BuildPromotion(tenant, "BUY1GET1FREE");
 
             var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
@@ -206,8 +205,8 @@ namespace Niobium.Store.Core.Tests.Flows
             item.LineTotal.Should().Be(1000);
             quote.DiscountDescription.Values.Should().Contain("Buy 1 Get 1 Free");
             quote.Discount.Should().Be(500);
-            quote.Tax.Should().Be(140);
-            quote.GrandTotal.Should().Be(1540);
+            quote.Tax.Should().Be(128);
+            quote.Total.Should().Be(1400);
         }
 
         // Scenario: Buy 2 Get 3 Free promotion with gift item handling
@@ -224,9 +223,9 @@ namespace Niobium.Store.Core.Tests.Flows
             request.Coupon = "BUY2GET3FREE";
 
             var tax = new Tax(rate: 1000, kind: TaxKind.GST);
-            var listing1 = BuildListing(1, "Default", 500, "USD", tax.Rate, (int)tax.Kind);
-            var listing2 = BuildListing(2, "Default", 0, "USD", tax.Rate, (int)tax.Kind);
-            var shipping = BuildShippingOption(10, 900, "USD", new[] { "US" });
+            var listing1 = BuildListing(1, "Default", 500, 1000, "USD", tax.Rate, (int)tax.Kind);
+            var listing2 = BuildListing(2, "Default", 0, 1000, "USD", tax.Rate, (int)tax.Kind);
+            var shipping = BuildShippingOption(10, 900, "USD", ["US"]);
             var promotion = BuildPromotion(tenant, "BUY2GET3FREE");
 
             var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
@@ -258,8 +257,8 @@ namespace Niobium.Store.Core.Tests.Flows
             gift.Quantity.Should().Be(4);
             gift.LineTotal.Should().Be(0);
             quote.Discount.Should().Be(1500);
-            quote.Tax.Should().Be(190);
-            quote.GrandTotal.Should().Be(2090);
+            quote.Tax.Should().Be(173);
+            quote.Total.Should().Be(1900);
 
             quote.DiscountDescription.Values.Should().Contain("Buy 2 Get 3 Free");
             quote.DiscountDescription.Values.Should().Contain("Get 4 Hair Remover Free");
@@ -278,8 +277,8 @@ namespace Niobium.Store.Core.Tests.Flows
             request.Coupon = "BUY1GET1FREE"; // targets listing 1 only
 
             var tax = new Tax(rate: 1000, kind: TaxKind.GST);
-            var listing = BuildListing(3, "Default", 500, "USD", tax.Rate, (int)tax.Kind);
-            var shipping = BuildShippingOption(10, 900, "USD", new[] { "US" });
+            var listing = BuildListing(3, "Default", 500, 1000, "USD", tax.Rate, (int)tax.Kind);
+            var shipping = BuildShippingOption(10, 900, "USD", ["US"]);
             var promotion = BuildPromotion(tenant, "BUY1GET1FREE");
 
             var listingRepo = new Mock<IDomainRepository<ListingDomain, Listing>>(MockBehavior.Strict);
@@ -300,9 +299,8 @@ namespace Niobium.Store.Core.Tests.Flows
             var quote = await flow.RunAsync(request, CancellationToken.None);
 
             var expectedSubTotal = 2 * 500;
-            quote.SubTotal.Should().Be(expectedSubTotal);
             quote.Discount.Should().Be(0);
-            quote.GrandTotal.Should().Be(expectedSubTotal + quote.ShippingCost + quote.Tax);
+            quote.Total.Should().Be(expectedSubTotal + quote.ShippingCost);
         }
 
         // Scenario: Empty cart is invalid
@@ -342,13 +340,14 @@ namespace Niobium.Store.Core.Tests.Flows
                 Cart = items.ToList(),
             };
 
-        private static Listing BuildListing(int id, string option, long price, string currency, long taxRate, int taxKind)
+        private static Listing BuildListing(int id, string option, long price, long wasPrice, string currency, long taxRate, int taxKind)
             => new()
             {
                 ID = id,
                 Option = option,
                 Name = $"Item {id}",
                 Price = price,
+                WasPrice = wasPrice,
                 Currency = currency,
                 SKU = $"SKU-{id}",
                 TaxRate = taxRate,

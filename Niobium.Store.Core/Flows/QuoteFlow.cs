@@ -30,7 +30,7 @@ namespace Niobium.Store.Flows
 
             var baseline = listingQuotes.First();
             var listingCurrency = baseline.Currency;
-            var listingTax = baseline.Tax;
+            var listingTax = baseline.TaxInfo;
             var shippingQuote = await shipping.QuoteAsync(request, listingTax, cancellationToken);
 
             if (shippingQuote.Amount.Currency != listingCurrency)
@@ -55,7 +55,6 @@ namespace Niobium.Store.Flows
                 await promoDomain.ApplyAsync(result, cancellationToken);
             }
 
-            result.Update();
             return result;
         }
     }

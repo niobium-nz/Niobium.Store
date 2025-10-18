@@ -86,8 +86,6 @@ namespace Niobium.Store.Core.Tests.Events
                 BillingCity = "Auckland",
                 BillingCountry = "NZ",
                 BillingPostcode = "1010",
-                GrandTotal = 1000,
-                SubTotal = 950,
                 ShippingCost = 0,
                 Tax = 50,
                 MarketingSubscription = marketingSubscription,

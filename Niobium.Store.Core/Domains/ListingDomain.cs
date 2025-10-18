@@ -1,4 +1,3 @@
-using System.Security.Cryptography.Xml;
 using Niobium.Finance;
 using Niobium.Invoicing;
 
@@ -36,20 +35,16 @@ namespace Niobium.Store.Domains
         public async Task<PricedCartItem> QuoteAsync(int quantity, CancellationToken cancellationToken)
         {
             var entity = await this.GetEntityAsync(cancellationToken);
-            var result = new PricedCartItem
+            return new PricedCartItem
             {
                 Listing = entity.ID,
                 Option = entity.Option,
                 Quantity = quantity,
                 Was = entity.WasPrice,
                 Now = entity.Price,
-                Tax = new Tax(entity.TaxRate, (TaxKind)entity.TaxKind),
+                TaxInfo = new Tax(entity.TaxRate, (TaxKind)entity.TaxKind),
                 Currency = entity.Currency,
-                LineTotal = 0,
-                Discount = 0,
             };
-            result.Update();
-            return result;
         }
     }
 }

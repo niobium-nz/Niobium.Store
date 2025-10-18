@@ -69,7 +69,7 @@ namespace Niobium.Store.Core.Tests.Flows
             var customerId = Guid.NewGuid();
             var orderId = 20002L;
             var order = BuildOrder(tenant, customerId, created: DateTimeOffset.UtcNow.AddMinutes(-10),
-                grandTotal: 1000, settled: 1000, status: OrderStatus.Paid);
+                total: 1000, settled: 1000, status: OrderStatus.Paid);
             var orderDomain = BuildInitializedOrderDomain(order);
 
             // External boundary: order domain is found and initialized
@@ -105,7 +105,7 @@ namespace Niobium.Store.Core.Tests.Flows
             var customerId = Guid.NewGuid();
             var orderId = 30003L;
             var order = BuildOrder(tenant, customerId, DateTimeOffset.UtcNow.AddMinutes(-20),
-                grandTotal: 1500, settled: 0, status: OrderStatus.Cancelled);
+                total: 1500, settled: 0, status: OrderStatus.Cancelled);
             var orderDomain = BuildInitializedOrderDomain(order);
 
             // External boundary: order domain is found and initialized
@@ -171,7 +171,7 @@ namespace Niobium.Store.Core.Tests.Flows
             var customerId = Guid.NewGuid();
             var orderId = 50005L;
             var order = BuildOrder(tenant, customerId, DateTimeOffset.UtcNow.AddMinutes(-30),
-                grandTotal: 2000, settled: 500, status: OrderStatus.Created);
+                total: 2000, settled: 500, status: OrderStatus.Created);
             var orderDomain = BuildInitializedOrderDomain(order);
 
             var orderRepo = new Mock<IDomainRepository<OrderDomain, Order>>(MockBehavior.Strict);
@@ -231,7 +231,7 @@ namespace Niobium.Store.Core.Tests.Flows
                 Delta = delta
             };
 
-        private static Order BuildOrder(Guid tenant, Guid customerId, DateTimeOffset created, long grandTotal, long settled, OrderStatus status)
+        private static Order BuildOrder(Guid tenant, Guid customerId, DateTimeOffset created, long total, long settled, OrderStatus status)
             => new()
             {
                 Customer = customerId,
@@ -254,9 +254,8 @@ namespace Niobium.Store.Core.Tests.Flows
                 BillingCity = "City",
                 BillingCountry = "US",
                 BillingPostcode = "10001",
-                GrandTotal = grandTotal,
-                SubTotal = grandTotal,
                 ShippingCost = 0,
+                Total = total,
                 Tax = 0,
                 Settled = settled,
             };

@@ -21,9 +21,7 @@ namespace Niobium.Store
 
         public long Settled { get; set; }
 
-        public long GrandTotal { get; set; }
-
-        public long SubTotal { get; set; }
+        public long Total { get; set; }
 
         public long Discount { get; set; }
 

@@ -386,8 +386,6 @@ namespace Niobium.Store.Core.Tests.Flows
                 BillingState = billing?.state,
                 BillingCountry = billing?.country ?? "US",
                 BillingPostcode = billing?.postcode ?? "10001",
-                SubTotal = 0,
-                GrandTotal = 0,
                 Discount = 0,
                 ShippingCost = 0,
                 Tax = 0,
