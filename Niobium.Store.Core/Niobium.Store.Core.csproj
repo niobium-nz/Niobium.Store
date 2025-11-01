@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Niobium.Invoicing.Contracts" Version="1.0.98" />
-    <PackageReference Include="Niobium.Platform.Finance" Version="3.4.25" />
+    <PackageReference Include="Niobium.Platform.Finance" Version="3.4.26" />
     <PackageReference Include="Niobium.Notification.Contracts" Version="1.0.101" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.10" />
   </ItemGroup>
