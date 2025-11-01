@@ -30,10 +30,10 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.24.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.5" />
-    <PackageReference Include="Niobium.Platform.Captcha.Recaptcha" Version="3.4.24" />
-    <PackageReference Include="Niobium.Platform.Finance.Stripe" Version="3.4.24" />
-    <PackageReference Include="Niobium.Platform.StorageTable" Version="3.4.24" />
-    <PackageReference Include="Niobium.Platform.ServiceBus" Version="3.4.24" />
+    <PackageReference Include="Niobium.Platform.Captcha.Recaptcha" Version="3.4.25" />
+    <PackageReference Include="Niobium.Platform.Finance.Stripe" Version="3.4.25" />
+    <PackageReference Include="Niobium.Platform.StorageTable" Version="3.4.25" />
+    <PackageReference Include="Niobium.Platform.ServiceBus" Version="3.4.25" />
   </ItemGroup>
 
   <ItemGroup>
