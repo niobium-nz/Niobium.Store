@@ -1,4 +1,3 @@
-using System.Globalization;
 using Niobium.Finance;
 using Niobium.Invoicing;
 

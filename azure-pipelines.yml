@@ -240,13 +240,23 @@ stages:
               "slotSetting": true
             },
             {
-              "name": "PaymentServiceOptions:SecretAPIKey",
+              "name": "PaymentServiceOptions:Secrets:de8b3e50-abf6-4cdd-9269-f2472a1020ad",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET-NIOBIUM/)",
+              "slotSetting": true
+            },
+            {
+              "name": "PaymentServiceOptions:Hashes:de8b3e50-abf6-4cdd-9269-f2472a1020ad",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-HASH-NIOBIUM/)",
+              "slotSetting": true
+            },
+            {
+              "name": "PaymentServiceOptions:Secrets:2aad53c9-9849-43a9-bcd7-50425b3249d5",
               "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET/)",
               "slotSetting": true
             },
             {
-              "name": "PaymentServiceOptions:SecretHashKey",
-              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/HASH-SECRET/)",
+              "name": "PaymentServiceOptions:Hashes:2aad53c9-9849-43a9-bcd7-50425b3249d5",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-HASH-TAPSS/)",
               "slotSetting": true
             },
             {
@@ -257,6 +267,11 @@ stages:
             {
                 "name": "CaptchaOptions:Secrets:www.zaps.co.nz",
                 "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/RECAPTCHA-WWW-ZAPS-CO-NZ/)",
+                "slotSetting": true
+            },
+            {
+                "name": "CaptchaOptions:Secrets:www.tapss.care",
+                "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/RECAPTCHA-WWW-TAPSS-CARE/)",
                 "slotSetting": true
             }
           ]
@@ -300,12 +315,22 @@ stages:
               "slotSetting": true
             },
             {
-              "name": "PaymentServiceOptions:SecretAPIKey",
+              "name": "PaymentServiceOptions:Secrets:de8b3e50-abf6-4cdd-9269-f2472a1020ad",
               "value": "sk_test_51RSwkoRt21XMpal8PaJpf5l6bGSGtgU1bueDBUL5mJw16bv5jPegj99Yw5yAXRSqaL0n0lFoan6JA6FOUdZWKKbb00a4PHlbrS",
               "slotSetting": true
             },
             {
-              "name": "PaymentServiceOptions:SecretHashKey",
+              "name": "PaymentServiceOptions:Hashes:de8b3e50-abf6-4cdd-9269-f2472a1020ad",
+              "value": "012345678901234567890123456789AB",
+              "slotSetting": true
+            },
+            {
+              "name": "PaymentServiceOptions:Secrets:2aad53c9-9849-43a9-bcd7-50425b3249d5",
+              "value": "sk_test_51RnResFJdDkeUFUtVGR7D0JVAZAoRbHMyd6lWhgdWwBoBdRw6wjPstFVl1phQm6KoOwLIBeXZrqhPSVZvngkXsGR00ZFzOWCaw",
+              "slotSetting": true
+            },
+            {
+              "name": "PaymentServiceOptions:Hashes:2aad53c9-9849-43a9-bcd7-50425b3249d5",
               "value": "012345678901234567890123456789AB",
               "slotSetting": true
             },
