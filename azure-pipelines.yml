@@ -369,22 +369,7 @@ stages:
         customCommand: 'test'
         workingDir: '$(System.DefaultWorkingDirectory)/Niobium.Store.IntegrationTests'
       displayName: 'npm test'
-
-  - job: Swap
-    dependsOn: 
-      - Testing
-    condition: and(succeeded(), eq('${{ variables.enableStagingSlot }}', true))
-    steps:
-    - task: AzureAppServiceManage@0
-      displayName: 'Swap Production'
-      inputs:
-        azureSubscription: $(serviceConnection)
-        ResourceGroupName: $(resourceGroupName)
-        Action: 'Swap Slots'
-        WebAppName: $(appName)
-        SourceSlot: 'staging'
-        SwapWithProduction: false
-
+      
   - template: pipelines/jobs/AssetsDeploy.yml@devops
     parameters:
       cloudflarePagesProjectName: $(assetsPageName)
