@@ -383,7 +383,7 @@ stages:
         Action: 'Swap Slots'
         WebAppName: $(appName)
         SourceSlot: 'staging'
-        SwapWithProduction: true
+        SwapWithProduction: false
 
   - template: pipelines/jobs/AssetsDeploy.yml@devops
     parameters:

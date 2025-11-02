@@ -28,7 +28,7 @@ namespace Niobium.Store.Functions
             }
 
             loaded = true;
-            var isPreProduction = builder.Configuration.IsPreProductionEnvironment();
+            var isDevEnv = builder.Configuration.IsDevelopmentEnvironment();
 
             builder.AddFinance();
             builder.AddDatabase();
@@ -40,9 +40,9 @@ namespace Niobium.Store.Functions
 
             _ = builder.Services.AddMemoryCachedRepository<Listing>();
             _ = builder.Services.AddMemoryCachedRepository<ShippingOption>();
-            _ = builder.Services.AddMessagingBroker<SubscribeCommand>(isPreProduction, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
-            _ = builder.Services.AddMessagingBroker<NotifyCommand>(isPreProduction, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
-            _ = builder.Services.AddMessagingBroker<IssueInvoiceCommand>(isPreProduction, builder.Configuration.GetSection(nameof(InvoiceQueueOptions)).Bind);
+            _ = builder.Services.AddMessagingBroker<SubscribeCommand>(isDevEnv, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
+            _ = builder.Services.AddMessagingBroker<NotifyCommand>(isDevEnv, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
+            _ = builder.Services.AddMessagingBroker<IssueInvoiceCommand>(isDevEnv, builder.Configuration.GetSection(nameof(InvoiceQueueOptions)).Bind);
             _ = builder.Services.AddTransient<IRepository<QuantifiedListing>>(sp =>
             {
                 var repo = sp.GetRequiredService<CloudTableRepository<QuantifiedListing>>();
