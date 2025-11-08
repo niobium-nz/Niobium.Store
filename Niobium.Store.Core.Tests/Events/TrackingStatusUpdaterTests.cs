@@ -39,10 +39,9 @@ namespace Niobium.Store.Core.Tests.Events
             var handler = new TrackingStatusUpdater(repo.Object);
             var command = new UpdateTrackingCommand
             {
-                Tenant = tenantId,
                 Customer = customerId,
                 Order = order.GetID(),
-                ShippingStatus = OrderStatus.Shipped
+                Status = OrderStatus.Shipped
             };
 
             // When
@@ -73,10 +72,9 @@ namespace Niobium.Store.Core.Tests.Events
             var handler = new TrackingStatusUpdater(repo.Object);
             var command = new UpdateTrackingCommand
             {
-                Tenant = tenantId,
                 Customer = customerId,
                 Order = order.GetID(),
-                ShippingStatus = OrderStatus.Paid // backward request
+                Status = OrderStatus.Paid // backward request
             };
 
             // When
@@ -107,10 +105,9 @@ namespace Niobium.Store.Core.Tests.Events
             var handler = new TrackingStatusUpdater(repo.Object);
             var command = new UpdateTrackingCommand
             {
-                Tenant = tenantId,
                 Customer = customerId,
                 Order = order.GetID(),
-                ShippingStatus = OrderStatus.Delivered
+                Status = OrderStatus.Delivered
             };
 
             // When

@@ -23,6 +23,7 @@ namespace Niobium.Store
             _ = builder.Services.EnableExternalEvent<OrderSettledEvent, Order>();
             _ = builder.Services.EnableExternalEvent<OrderShippedEvent, Order>();
             _ = builder.Services.EnableExternalEvent<OrderDeliveredEvent, Order>();
+            _ = builder.Services.EnableExternalEvent<UpdateTrackingCommand, Order>();
         }
     }
 }

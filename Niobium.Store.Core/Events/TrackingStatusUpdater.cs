@@ -7,7 +7,7 @@ namespace Niobium.Store.Events
         public override async Task HandleCoreAsync(UpdateTrackingCommand e, CancellationToken cancellationToken = default)
         {
             var domain = await repo.GetAsync(Order.BuildPartitionKey(e.Customer), Order.BuildRowKey(e.Order), cancellationToken: cancellationToken);
-            await domain.UpdateTrackingAsync(e.ShippingStatus, cancellationToken);
+            await domain.UpdateTrackingAsync(e.Status, cancellationToken);
         }
     }
 }
