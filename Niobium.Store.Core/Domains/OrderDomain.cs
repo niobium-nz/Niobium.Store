@@ -115,6 +115,19 @@ namespace Niobium.Store.Domains
             return result;
         }
 
+        public async Task UpdateTrackingAsync(OrderStatus shippingStatus, CancellationToken cancellationToken)
+        {
+            var entity = await this.GetEntityAsync(cancellationToken);
+            if (entity.Status >= (int)shippingStatus)
+            {
+                logger.LogWarning($"Order {entity.GetFullID()} status {entity.Status} is already ahead of or equal to {shippingStatus}, no update needed.");
+                return;
+            }
+
+            entity.Status = (int)shippingStatus;
+            await this.SaveAsync(force: true, cancellationToken: cancellationToken);
+        }
+
         public async Task<ChargeRequest> CreateChargeAsync(string? clientIP = null, CancellationToken cancellationToken = default)
         {
             var due = await this.FigureDueAsync(cancellationToken);
