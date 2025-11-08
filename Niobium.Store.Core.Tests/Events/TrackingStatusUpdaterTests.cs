@@ -41,7 +41,8 @@ namespace Niobium.Store.Core.Tests.Events
             {
                 Customer = customerId,
                 Order = order.GetID(),
-                Status = OrderStatus.Shipped
+                Status = OrderStatus.Shipped,
+                Source = DomainEventAudience.External,
             };
 
             // When
@@ -74,7 +75,8 @@ namespace Niobium.Store.Core.Tests.Events
             {
                 Customer = customerId,
                 Order = order.GetID(),
-                Status = OrderStatus.Paid // backward request
+                Status = OrderStatus.Paid, // backward request
+                Source = DomainEventAudience.External,
             };
 
             // When
@@ -107,7 +109,8 @@ namespace Niobium.Store.Core.Tests.Events
             {
                 Customer = customerId,
                 Order = order.GetID(),
-                Status = OrderStatus.Delivered
+                Status = OrderStatus.Delivered,
+                Source = DomainEventAudience.External,
             };
 
             // When
