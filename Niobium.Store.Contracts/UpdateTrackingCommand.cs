@@ -10,6 +10,6 @@ namespace Niobium.Store
 
         public required long Order { get; init; }
 
-        public required int ShippingStatus { get; init; }
+        public required OrderStatus ShippingStatus { get; init; }
     }
 }

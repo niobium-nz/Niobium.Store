@@ -14,7 +14,7 @@ namespace Niobium.Store.Functions
     {
         [Function(nameof(OrderShippedEventConsumer))]
         public async Task Run(
-            [ServiceBusTrigger("ordershippedevent", AutoCompleteMessages = true, Connection = nameof(ServiceBusTriggerOptions))]
+            [ServiceBusTrigger("ordershippedevent", Connection = nameof(ServiceBusTriggerOptions))]
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken)
         {
