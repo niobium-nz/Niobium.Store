@@ -251,7 +251,7 @@ stages:
             },
             {
               "name": "PaymentServiceOptions:Secrets:2aad53c9-9849-43a9-bcd7-50425b3249d5",
-              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET/)",
+              "value": "@Microsoft.KeyVault(SecretUri=$(keyVaultUrl)/secrets/STRIPE-SECRET-TAPSS/)",
               "slotSetting": true
             },
             {
