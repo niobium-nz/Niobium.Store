@@ -87,8 +87,6 @@ jobs:
           SERVICE_BUS_QUEUE_NAMES: ${{ env.SERVICE_BUS_QUEUES }}
           APPSETTING_SERVICE_NAME: ${{ env.SERVICE_NAME }}
           APPSETTING_SERVICE_VERSION: '${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ github.run_number }}${{ env.VERSION_SUFFIX }}'
-          APPSETTING_RESENDSERVICEOPTIONS__GLOBALAPIKEY: ${{ secrets.RESEND_API_KEY }}
-          APPSETTING_NOTIFICATIONOPTIONS__SELFHOSTNAME: ${{ secrets.SELF_HOSTNAME }}
           APPSETTING_CAPTCHAOPTIONS__ISDISABLED: ${{ env.CAPTCHAOPTIONS_ISDISABLED }}
         run: |
           azd package --no-prompt
