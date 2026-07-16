@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Niobium.Store</RootNamespace>
@@ -11,26 +11,18 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisMode>Recommended</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <NoWarn>CA1848,CA2254,CA1305,CA1310,CA1711,CA1852,CS8618</NoWarn>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
 
     <NeutralLanguage>en-US</NeutralLanguage>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <Version Condition=" '$(BUILD_BUILDNUMBER)' == '' ">1.0.0</Version>
-    <Version Condition=" '$(BUILD_BUILDNUMBER)' != '' ">$(BUILD_BUILDNUMBER)</Version>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Niobium.Abstractions" Version="3.4.29" />
-    <PackageReference Include="Niobium.Helper" Version="3.4.29" />
-    <PackageReference Include="Niobium.Messaging" Version="3.4.29" />
-    <PackageReference Include="Niobium.Finance" Version="3.4.29" />
+    <PackageReference Include="Niobium.Abstractions" Version="4.0.33" />
+    <PackageReference Include="Niobium.Helper" Version="4.0.33" />
+    <PackageReference Include="Niobium.Messaging" Version="4.0.33" />
+    <PackageReference Include="Niobium.Finance" Version="4.0.33" />
   </ItemGroup>
 </Project>

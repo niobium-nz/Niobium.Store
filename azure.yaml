@@ -1,0 +1,24 @@
+name: niobiumstore
+hooks:
+  preprovision:
+    shell: pwsh
+    run: ./infra/scripts/SetAppSettings.ps1
+  postprovision:
+    shell: pwsh
+    run: ./infra/scripts/ClearAppSettings.ps1
+services:
+  niobium.store.host:
+    project: ./src/Niobium.Store.Host
+    language: csharp
+    host: containerapp
+    docker:
+      context: ../..
+      path: ./Dockerfile
+      registry: docker.io
+      image: niobiumnz/niobiumstore
+      tag: ${APPSETTING_SERVICE_VERSION:-1.0.0-prerelease}
+infra:
+  provider: bicep
+  layers:
+    - name: niobiumstore-host
+      path: ./infra

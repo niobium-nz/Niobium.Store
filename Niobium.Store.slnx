@@ -1,0 +1,26 @@
+<Solution>
+  <Folder Name="/Frontend/">
+    <File Path="assets/order.js" />
+    <File Path="assets/quote.js" />
+    <File Path="assets/track.js" />
+    <File Path="src/Niobium.Store.IntegrationTests/test/store.e2e.test.js" />
+  </Folder>
+  <Folder Name="/Infrastructures/">
+    <File Path="infra/main.bicep" />
+    <File Path="infra/main.parameters.json" />
+    <File Path="infra/RBAC.bicep" />
+    <File Path="infra/ServiceBus.bicep" />
+    <File Path="infra/ServiceBusPubSub.bicep" />
+  </Folder>
+  <Folder Name="/Pipelines/">
+    <File Path=".github/workflows/azure-deploy.yml" />
+    <File Path=".github/workflows/publish-job.yml" />
+  </Folder>
+  <Project Path="compose-niobium-store.dcproj" Id="81dded9d-158b-e303-5f62-77a2896d2a5b">
+    <Build />
+  </Project>
+  <Project Path="src/Niobium.Store.Contracts/Niobium.Store.Contracts.csproj" />
+  <Project Path="src/Niobium.Store.Core.Tests/Niobium.Store.Core.Tests.csproj" />
+  <Project Path="src/Niobium.Store.Core/Niobium.Store.Core.csproj" />
+  <Project Path="src/Niobium.Store.Host/Niobium.Store.Host.csproj" />
+</Solution>
