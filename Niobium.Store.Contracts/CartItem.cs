@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Niobium.Store
 {
@@ -12,5 +12,7 @@ namespace Niobium.Store
 
         [Range(1, 10)]
         public int Quantity { get; set; }
+
+        public string? Name { get; set; }
     }
 }
