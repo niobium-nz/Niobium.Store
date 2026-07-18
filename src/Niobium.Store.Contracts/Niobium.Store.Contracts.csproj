@@ -20,9 +20,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Niobium.Abstractions" Version="4.0.33" />
-    <PackageReference Include="Niobium.Helper" Version="4.0.33" />
-    <PackageReference Include="Niobium.Messaging" Version="4.0.33" />
-    <PackageReference Include="Niobium.Finance" Version="4.0.33" />
+    <PackageReference Include="Niobium.Abstractions" Version="4.0.43" />
+    <PackageReference Include="Niobium.Helper" Version="4.0.43" />
+    <PackageReference Include="Niobium.Messaging" Version="4.0.42" />
+    <PackageReference Include="Niobium.Finance" Version="4.0.43" />
   </ItemGroup>
 </Project>

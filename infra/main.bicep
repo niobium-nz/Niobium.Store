@@ -30,6 +30,9 @@ param serviceBusQueueNames string = ''
 @description('Custom domain name bind to the container app.')
 param customDomainName string = ''
 
+@description('Certificate name of the custom domain bind to the container app.')
+param customDomainCertificateName string = ''
+
 var pubSubDaprAppId = 'servicebus-dapr-worker'
 var logAnalyticsName = '${appName}-law'
 var appInsightsName = '${appName}-ai'
@@ -159,22 +162,22 @@ var containerAppScaleRules = concat([
   }
 ], serviceBusQueueScaleRules)
 
-// resource managedCert 'Microsoft.App/managedEnvironments/managedCertificates@2026-01-01' = if (!empty(customDomainName)) {
-//   name: '${containerAppsEnvironmentName}/staging.api.store.nio-niobiumn-260715004353'
-//   location: location
-//   properties: {
-//     domainControlValidation: 'CNAME'
-//     subjectName: customDomainName
-//   }
-// }
+resource managedCert 'Microsoft.App/managedEnvironments/managedCertificates@2026-01-01' = if (!empty(customDomainName) && !empty(customDomainCertificateName)) {
+  name: '${containerAppsEnvironmentName}/${customDomainCertificateName}'
+  location: location
+  properties: {
+    domainControlValidation: 'CNAME'
+    subjectName: customDomainName
+  }
+}
 
-// var customerDomains = empty(customDomainName) ? [] : [
-//   {
-//     name: customDomainName
-//     bindingType: 'SniEnabled'
-//     certificateId: managedCert.id
-//   }
-// ]
+var customerDomains = empty(customDomainName) || empty(customDomainCertificateName) ? [] : [
+  {
+    name: customDomainName
+    bindingType: 'SniEnabled'
+    certificateId: managedCert.id
+  }
+]
 
 var currentImage = appExists ? reference(containerAppResourceId, '2026-01-01').template.containers[0].image : 'mcr.microsoft.com/dotnet/samples:dotnetapp'
 module containerApp 'br/public:avm/res/app/container-app:0.21.0' = {
@@ -217,7 +220,7 @@ module containerApp 'br/public:avm/res/app/container-app:0.21.0' = {
     ingressTargetPort: appPort
     ingressTransport: 'auto'
     ingressAllowInsecure: false
-    customDomains: []
+    customDomains: customerDomains
   }
 }
 
