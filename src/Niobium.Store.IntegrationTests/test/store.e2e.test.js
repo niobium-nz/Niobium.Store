@@ -2,9 +2,9 @@ import path from 'node:path';
 import { describe, it, expect } from 'vitest';
 
 // Load helper scripts
-await import(path.resolve(process.cwd(), '../assets/quote.js'));
-await import(path.resolve(process.cwd(), '../assets/order.js'));
-await import(path.resolve(process.cwd(), '../assets/track.js'));
+await import(path.resolve(process.cwd(), '../../assets/quote.js'));
+await import(path.resolve(process.cwd(), '../../assets/order.js'));
+await import(path.resolve(process.cwd(), '../../assets/track.js'));
 
 // Ensure Node 18+ provides global fetch
 if (typeof fetch !== 'function') {
