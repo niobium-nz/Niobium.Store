@@ -7,7 +7,7 @@ namespace Niobium.Store.Host.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class TrackOrderController(TrackFlow flow, IVisitorRiskAssessor assessor) : ControllerBase
+    public class TrackController(TrackFlow flow, IVisitorRiskAssessor assessor) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> Action(HttpRequest req, TrackRequest request, CancellationToken cancellationToken)

@@ -7,11 +7,10 @@ namespace Niobium.Store.Host.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class MakeOrderController(OrderFlow flow, IVisitorRiskAssessor assessor) : ControllerBase
+    public class QuoteController(QuoteFlow flow, IVisitorRiskAssessor assessor) : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> Action(HttpRequest req, OrderRequest request,
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> Action(QuoteRequest request, CancellationToken cancellationToken)
         {
             bool valid = request.TryValidate(out ValidationState? validationState);
             if (!valid || !validationState.IsValid)
@@ -25,8 +24,8 @@ namespace Niobium.Store.Host.Controllers
                 return new UnauthorizedResult();
             }
 
-            var response = await flow.RunAsync(request, req.GetRemoteIP(), cancellationToken);
-            return new OkObjectResult(response);
+            QuoteResponse quote = await flow.RunAsync(request, cancellationToken);
+            return new OkObjectResult(quote);
         }
     }
 }
