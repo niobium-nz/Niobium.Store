@@ -7,7 +7,7 @@ namespace Niobium.Store.Host.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class OrderController(OrderFlow flow, IVisitorRiskAssessor assessor) : ControllerBase
+    public class OrdersController(OrderFlow flow, IVisitorRiskAssessor assessor) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> Action(HttpRequest req, OrderRequest request,
