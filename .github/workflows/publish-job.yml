@@ -6,9 +6,6 @@ on:
       environment:
         required: true
         type: string
-      custom_domain:
-        required: true
-        type: string
       version_suffix:
         required: false
         type: string
@@ -17,6 +14,10 @@ on:
         required: false
         type: boolean
         default: false
+      run_integration_test:
+        required: false
+        type: boolean
+        default: true
     secrets:
       AZURE_CLIENT_ID:
         required: true
@@ -28,13 +29,25 @@ on:
         required: true
       DOCKERHUB_TOKEN:
         required: true
-      RESEND_API_KEY:
-        required: true
-      SELF_HOSTNAME:
-        required: true
       CLOUDFLARE_API_TOKEN:
         required: false
       CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      CUSTOM_DOMAIN_NAME:
+        required: false
+      CUSTOM_DOMAIN_CERTIFICATE_NAME:
+        required: false
+      APPSETTING_PAYMENTSERVICEOPTIONS__SECRETAPIKEY:
+        required: true
+      APPSETTING_PAYMENTSERVICEOPTIONS__SECRETHASHKEY:
+        required: true
+      APPSETTING_PAYMENTSERVICEOPTIONS__HASHES__2AAD53C9_9849_43A9_BCD7_50425B3249D5:
+        required: false
+      APPSETTING_PAYMENTSERVICEOPTIONS__HASHES__DE8B3E50_ABF6_4CDD_9269_F2472A1020AD:
+        required: false
+      APPSETTING_PAYMENTSERVICEOPTIONS__SECRETS__2AAD53C9_9849_43A9_BCD7_50425B3249D5:
+        required: false
+      APPSETTING_PAYMENTSERVICEOPTIONS__SECRETS__DE8B3E50_ABF6_4CDD_9269_F2472A1020AD:
         required: false
 
 jobs:
@@ -48,8 +61,6 @@ jobs:
       VERSION_SUFFIX: ${{ inputs.version_suffix }}
       SERVICE_BUS_QUEUES: "ordercreatedevent,updatetrackingcommand,orderdeliveredevent,ordersettledevent,ordershippedevent"
       CLOUDFLARE_ASSETS_PROJECT: "assets-store-niobium-co-nz"
-      CAPTCHAOPTIONS_ISDISABLED: true
-      CUSTOM_DOMAIN_NAME: ${{ inputs.custom_domain }}
 
     steps:
       - name: Checkout
@@ -81,24 +92,33 @@ jobs:
         env:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+          AZURE_ENV_NAME: ${{ inputs.environment }}
           AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-          CUSTOM_DOMAIN_NAME: ${{ env.CUSTOM_DOMAIN_NAME }}
+          CUSTOM_DOMAIN_NAME: ${{ secrets.CUSTOM_DOMAIN_NAME }}
+          CUSTOM_DOMAIN_CERTIFICATE_NAME: ${{ secrets.CUSTOM_DOMAIN_CERTIFICATE_NAME }}
           SERVICE_BUS_QUEUE_NAMES: ${{ env.SERVICE_BUS_QUEUES }}
           APPSETTING_SERVICE_NAME: ${{ env.SERVICE_NAME }}
           APPSETTING_SERVICE_VERSION: '${{ env.VERSION_MAJOR }}.${{ env.VERSION_MINOR }}.${{ github.run_number }}${{ env.VERSION_SUFFIX }}'
-          APPSETTING_RESENDSERVICEOPTIONS__GLOBALAPIKEY: ${{ secrets.RESEND_API_KEY }}
-          APPSETTING_NOTIFICATIONOPTIONS__SELFHOSTNAME: ${{ secrets.SELF_HOSTNAME }}
-          APPSETTING_CAPTCHAOPTIONS__ISDISABLED: ${{ env.CAPTCHAOPTIONS_ISDISABLED }}
+          APPSETTING_CAPTCHAOPTIONS__ISDISABLED: ${{ vars.APPSETTING_CAPTCHAOPTIONS__ISDISABLED }}
+          APPSETTING_STOREOPTIONS__INVOICINGTENANT: ${{ vars.APPSETTING_STOREOPTIONS__INVOICINGTENANT }}
+          APPSETTING_INVOICEQUEUEOPTIONS__FULLYQUALIFIEDNAMESPACE: ${{ vars.APPSETTING_INVOICEQUEUEOPTIONS__FULLYQUALIFIEDNAMESPACE }}
+          APPSETTING_NOTIFICATIONQUEUEOPTIONS__FULLYQUALIFIEDNAMESPACE: ${{ vars.APPSETTING_NOTIFICATIONQUEUEOPTIONS__FULLYQUALIFIEDNAMESPACE }}
+          APPSETTING_PAYMENTSERVICEOPTIONS__SECRETAPIKEY: ${{ secrets.APPSETTING_PAYMENTSERVICEOPTIONS__SECRETAPIKEY }}
+          APPSETTING_PAYMENTSERVICEOPTIONS__SECRETHASHKEY: ${{ secrets.APPSETTING_PAYMENTSERVICEOPTIONS__SECRETHASHKEY }}
+          APPSETTING_PAYMENTSERVICEOPTIONS__HASHES__2AAD53C9_9849_43A9_BCD7_50425B3249D5: ${{ secrets.APPSETTING_PAYMENTSERVICEOPTIONS__HASHES__2AAD53C9_9849_43A9_BCD7_50425B3249D5 }}
+          APPSETTING_PAYMENTSERVICEOPTIONS__HASHES__DE8B3E50_ABF6_4CDD_9269_F2472A1020AD: ${{ secrets.APPSETTING_PAYMENTSERVICEOPTIONS__HASHES__DE8B3E50_ABF6_4CDD_9269_F2472A1020AD }}
+          APPSETTING_PAYMENTSERVICEOPTIONS__SECRETS__2AAD53C9_9849_43A9_BCD7_50425B3249D5: ${{ secrets.APPSETTING_PAYMENTSERVICEOPTIONS__SECRETS__2AAD53C9_9849_43A9_BCD7_50425B3249D5 }}
+          APPSETTING_PAYMENTSERVICEOPTIONS__SECRETS__DE8B3E50_ABF6_4CDD_9269_F2472A1020AD: ${{ secrets.APPSETTING_PAYMENTSERVICEOPTIONS__SECRETS__DE8B3E50_ABF6_4CDD_9269_F2472A1020AD }}
         run: |
           azd package --no-prompt
           azd provision --no-state --no-prompt
           azd deploy --no-prompt
 
       - name: Integration tests
+        if: ${{ inputs.run_integration_test }}
         working-directory: src/Niobium.Store.IntegrationTests
         env:
-          API_URL: 'https://${{ env.CUSTOM_DOMAIN_NAME }}'
+          API_URL: 'https://${{ secrets.CUSTOM_DOMAIN_NAME }}'
         run: |
           npm install
           npm test
