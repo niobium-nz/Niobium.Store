@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Niobium.Platform.Captcha.Recaptcha" Version="4.0.42" />
+    <PackageReference Include="Niobium.Platform.Captcha.Recaptcha" Version="4.0.45" />
     <PackageReference Include="Niobium.Platform.Finance.Stripe" Version="4.0.43" />
     <PackageReference Include="Niobium.Platform.StorageTable" Version="4.0.42" />
     <PackageReference Include="Niobium.Platform.ServiceBus" Version="4.0.42" />
