@@ -9,7 +9,7 @@ namespace Niobium.Store.Host.Controllers
     [Route("[controller]")]
     public class TrackController(TrackFlow flow, IVisitorRiskAssessor assessor) : ControllerBase
     {
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> Action(TrackRequest request, CancellationToken cancellationToken)
         {
             bool valid = request.TryValidate(out ValidationState? validationState);
