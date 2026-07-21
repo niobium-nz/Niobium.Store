@@ -51,7 +51,7 @@ namespace Niobium.Store.Domains
 
             if (!isShippingOptionSupported)
             {
-                var error = $"{country} is not supported by shipping option '{countryCode}'";
+                var error = $"{country} is not supported by shipping option '{entity.Countries}'";
                 logger.LogError(error);
                 throw new ApplicationException(InternalError.BadRequest, error) { Reference = error };
             }

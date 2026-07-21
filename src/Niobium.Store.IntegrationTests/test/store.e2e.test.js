@@ -42,7 +42,7 @@ describe('Store quote end-to-end tests', () => {
         const recaptchaKey = process.env.RECAPTCHA_KEY || 'test-recaptcha-key';
         const tenant = process.env.TENANT || 'de8b3e50-abf6-4cdd-9269-f2472a1020ad';
         const shippingId = Number(process.env.SHIPPING_ID || 1);
-        const shippingCountry = process.env.COUNTRY || 'NZL';
+        const shippingCountry = process.env.COUNTRY || 'AUS';
         const coupon = process.env.COUPON || 'BUY1GET1FREE';
         const cart = getCartFromEnv();
 
@@ -79,16 +79,16 @@ function getOrderDetailsFromEnv() {
     return {
         // required
         shippingId: Number(process.env.SHIPPING_ID || 1),
-        shippingCountry: process.env.COUNTRY || 'NZL',
+        shippingCountry: process.env.COUNTRY || 'AUS',
         consignee: process.env.CONSIGNEE || 'John Doe',
         email: process.env.EMAIL || 'hcp5he11@gmail.com',
         shippingAddressLine1: process.env.SHIP_ADDR1 || '123 Queen St',
-        shippingCity: process.env.SHIP_CITY || 'Auckland',
+        shippingCity: process.env.SHIP_CITY || 'Sydney',
         shippingPostcode: process.env.SHIP_POSTCODE || '1010',
         billingName: process.env.BILL_NAME || 'John Doe',
         billingAddressLine1: process.env.BILL_ADDR1 || '123 Queen St',
-        billingCity: process.env.BILL_CITY || 'Auckland',
-        billingCountry: process.env.BILL_COUNTRY || 'NZL',
+        billingCity: process.env.BILL_CITY || 'Sydney',
+        billingCountry: process.env.BILL_COUNTRY || 'AUS',
         billingPostcode: process.env.BILL_POSTCODE || '1010',
         cart,
 
@@ -107,8 +107,8 @@ function getOrderDetailsFromEnv() {
         track: process.env.TRACK || "fb-123",
 
         // Optional overrides (defaults exist in code if omitted)
-        culture: process.env.CULTURE || 'en-NZ',
-        timeZone: process.env.TIMEZONE || 'Pacific/Auckland',
+        culture: process.env.CULTURE || 'en-AU',
+        timeZone: process.env.TIMEZONE || 'Australia/Sydney',
     };
 }
 
