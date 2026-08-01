@@ -14,13 +14,14 @@ namespace Niobium.Store
             this.Shipping = request.Shipping;
             this.ShippingCountry = request.ShippingCountry;
             this.Coupon = request.Coupon;
+            this.Cart = request.Cart;
 
             this.Quote = listingQuotes;
             this.ShippingCost = shippingQuote.Cost.Amount;
             this.ShippingDescription = shippingQuote.Description;
             this.Discount = 0;
 
-            var baseline = listingQuotes.First();
+            PricedCartItem baseline = listingQuotes.First();
             this.Currency = baseline.Currency;
             this.TaxInfo = baseline.TaxInfo;
         }
@@ -39,7 +40,7 @@ namespace Niobium.Store
 
         public Currency Currency { get; set; }
 
-        public long Tax => Total - (long)Math.Round(((Total * 10000) / (10000m + TaxInfo.Rate)), 0, MidpointRounding.AwayFromZero);
+        public long Tax => this.Total - (long)Math.Round(this.Total * 10000 / (10000m + this.TaxInfo.Rate), 0, MidpointRounding.AwayFromZero);
 
         public long Subtotal => this.Quote.Sum(x => x.LineTotal);
 
