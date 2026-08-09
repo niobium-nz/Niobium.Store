@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.HttpOverrides;
 using Niobium.Database.StorageTable;
 using Niobium.Invoicing;
 using Niobium.Messaging.ServiceBus;
@@ -28,27 +27,18 @@ namespace Niobium.Store.Host
             }
 
             loaded = true;
-            bool isDevEnv = builder.Configuration.IsDevelopmentEnvironment();
 
             builder.Services.Configure<StoreOptions>(o => options?.Invoke(o));
 
-            builder.Services.AddDaprClient();
-            builder.Services.AddControllers().AddDapr();
-            builder.Services.Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-                options.KnownIPNetworks.Clear();
-                options.KnownProxies.Clear();
-            });
-
-            builder.ConfigureOpenTelemetry();
-
+            builder.AddDapr();
+            builder.AddPlatform();
             builder.AddFinance();
             builder.AddDatabase();
             builder.AddMessaging();
             builder.AddCaptcha();
             builder.AddCore();
 
+            bool isDevEnv = builder.Configuration.IsDevelopmentEnvironment();
             builder.Services.AddMemoryCachedRepository<Listing>();
             builder.Services.AddMemoryCachedRepository<ShippingOption>();
             builder.Services.AddMessagingBroker<SubscribeCommand>(isDevEnv, builder.Configuration.GetSection(nameof(NotificationQueueOptions)).Bind);
@@ -65,12 +55,8 @@ namespace Niobium.Store.Host
 
         public static WebApplication UseStore(this WebApplication app)
         {
-            app.UseForwardedHeaders();
-            app.UseRouting();
-            app.UseCloudEvents();
+            app.UseDapr();
             app.UsePlatformPayment();
-            app.MapControllers();
-            app.MapSubscribeHandler();
             return app;
         }
     }
