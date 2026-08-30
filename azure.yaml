@@ -1,5 +1,5 @@
 name: niobiumstore
-resourceGroup: 'rg-niobium-store-${AZURE_ENV_NAME}'
+resourceGroup: rg-niobium-store-${AZURE_ENV_NAME}
 
 hooks:
   preprovision:
