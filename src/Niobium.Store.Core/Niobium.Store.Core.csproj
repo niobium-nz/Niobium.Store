@@ -13,13 +13,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Niobium.Platform.Finance" Version="4.0.48" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
+    <PackageReference Include="Niobium.Invoicing.Contracts" Version="2.0.11" />
+    <PackageReference Include="Niobium.Notification.Contracts" Version="2.0.2" />
+    <PackageReference Include="Niobium.Platform.Finance" Version="4.0.53" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Niobium.Invoicing.Contracts\Niobium.Invoicing.Contracts.csproj" />
-    <ProjectReference Include="..\Niobium.Notification.Contracts\Niobium.Notification.Contracts.csproj" />
     <ProjectReference Include="..\Niobium.Store.Contracts\Niobium.Store.Contracts.csproj" />
   </ItemGroup>
 
