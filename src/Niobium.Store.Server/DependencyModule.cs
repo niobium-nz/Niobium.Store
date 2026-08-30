@@ -36,7 +36,7 @@ namespace Niobium.Store.Server
 
             added = true;
 
-            builder.AddPlatform();
+            Platform.Functions.DependencyModule.AddPlatform(builder);
             builder.AddFinance();
             builder.AddDatabase();
             builder.AddMessaging();
