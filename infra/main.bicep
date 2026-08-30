@@ -57,6 +57,7 @@ module dataStorageAccount 'br/public:avm/res/storage/storage-account:0.32.0' = {
     networkAcls: {
       defaultAction: 'Allow'
     }
+    allowBlobPublicAccess: true
     blobServices: {
       corsRules: [
         {
