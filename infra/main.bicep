@@ -31,6 +31,16 @@ param isInteractiveDeployer bool = true
 
 var abbrs = loadJsonContent('./abbreviations.json')
 
+// User assigned managed identity to be used by the function app to reach storage and other dependencies
+// Assign specific roles to this identity in the RBAC module
+var sharedManagedIdentityName = '${appShortName}-${abbrs.managedIdentityUserAssignedIdentities}${environmentName}'
+module sharedManagedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.6.0' = {
+  params: {
+    name: sharedManagedIdentityName
+    location: location
+  }
+}
+
 var serviceBusNamespaceName = '${appShortName}-${abbrs.serviceBusNamespaces}${environmentName}'
 module serviceBus 'service-bus.bicep' = {
   params: {
@@ -43,6 +53,14 @@ var serviceBusSettings = [
     { 
         name: 'AzureWebJobsServiceBus__fullyQualifiedNamespace'
         value: serviceBus.outputs.fullyQualifiedNamespace
+    }    
+    { 
+        name: 'AzureWebJobsServiceBus__credential'
+        value: 'managedidentity'
+    }
+    { 
+        name: 'AzureWebJobsServiceBus__clientId'
+        value: sharedManagedIdentity.outputs.clientId
     }
 ]
 
@@ -91,12 +109,21 @@ var storageSettings = [
         name: 'AzureWebJobsStorage__tableServiceUri'
         value: dataStorageAccount.outputs.serviceEndpoints.table
     }
+    { 
+        name: 'AzureWebJobsStorage__credential'
+        value: 'managedidentity'
+    }
+    { 
+        name: 'AzureWebJobsStorage__clientId'
+        value: sharedManagedIdentity.outputs.clientId
+    }
 ]
 
 module app 'function-app.bicep' = {
   params: {
     location: location
     appShortName: appShortName
+    userAssignedManagedIdentityName: sharedManagedIdentityName
     environmentName: environmentName
     appSettings: concat(appSettings, serviceBusSettings, storageSettings)
     customDomainName: customDomainName
@@ -108,7 +135,7 @@ module app 'function-app.bicep' = {
 module rbac 'rbac.bicep' = {
   params: {
     userIdentityPrincipalId: userIdentityPrincipalId
-    managedIdentityPrincipalId: app.outputs.managedIdentityPrincipalId
+    managedIdentityPrincipalId: sharedManagedIdentity.outputs.principalId
     storageAccountNames: [dataStorageAccountName]
     serviceBusNamespaceNames: [serviceBusNamespaceName]
   }
