@@ -68,7 +68,11 @@ silently replace native review with a polling task or duplicate implementation c
 | PR closed unmerged, direct main push or manual dispatch | No deployment or package publication through these workflows |
 
 The production job and release job explicitly require a closed, merged PR to main
-and check out `merge_commit_sha`. `SourceRevisionId` is embedded in the Server's
+using the trusted base-repository `pull_request_target` event, so merged fork and
+Dependabot PRs can use release credentials. They never run for opened or updated
+PRs or check out an unmerged PR head. See GitHub's
+[merged-PR event guidance](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#running-your-pull_request_target-workflow-when-a-pull-request-merges).
+They check out `merge_commit_sha`. `SourceRevisionId` is embedded in the Server's
 assembly metadata, and `/health` exposes only readiness and that compiled commit.
 It performs no Store data access. Production verification rejects other methods,
 paths, redirects, malformed/oversized responses and mismatched commits.
@@ -79,6 +83,13 @@ package publishing have separate queues. `cancel-in-progress: false` and `queue:
 retain up to 100 pending runs; additional runs are canceled when that queue is full.
 This is supported by GitHub's current
 [concurrency reference](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency).
+Queue acquisition order can differ from merge order. After acquiring its queue,
+production validates the closed merge and compares its SHA with the current main
+tip before checkout, authentication or deployment. A superseded run records a skip
+in its summary; the agent follows the newer main commit's production run. This
+prevents an older queued run from rolling back a newer deployment. Package releases
+retain their separate merged ranges so a later documentation-only merge does not
+suppress an earlier Contracts release.
 Feature prerelease publication is removed; a Contracts tree comparison between the
 closed event's pre-merge `base.sha` and actual `merge_commit_sha` determines whether
 release work is needed. Fetch complete history and validate ancestry. Comparing

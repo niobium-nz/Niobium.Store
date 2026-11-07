@@ -3,7 +3,7 @@ name: Azure Deployment
 on:
   push:
     branches: ['**', '!main']
-  pull_request:
+  pull_request_target:
     branches: [main]
     types: [closed]
 
@@ -152,7 +152,7 @@ jobs:
 
   prod:
     name: Deploy production and run read-only verification
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
     permissions:
       contents: read
       id-token: write
@@ -160,19 +160,45 @@ jobs:
     environment: 'prod'
 
     steps:
+      - name: Verify current merged production commit
+        id: merge
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const repository = `${context.repo.owner}/${context.repo.repo}`.toLowerCase();
+            if (context.eventName !== 'pull_request_target' || context.payload.action !== 'closed' ||
+                pr?.merged !== true || pr.base?.ref !== 'main' ||
+                pr.base?.repo?.full_name?.toLowerCase() !== repository ||
+                !/^[0-9a-f]{40}$/.test(pr.merge_commit_sha ?? '')) {
+              core.setFailed('A merged PR to this repository main is required.');
+              return;
+            }
+            const { data: branch } = await github.rest.repos.getBranch({ ...context.repo, branch: 'main' });
+            const current = branch.commit.sha === pr.merge_commit_sha;
+            core.setOutput('current', String(current));
+            if (!current) {
+              core.notice('Superseded merge: production deployment skipped.');
+              await core.summary.addRaw('This merge has been superseded by a newer main commit. Follow that commit’s production run.').write();
+            }
+
       - name: Checkout
+        if: steps.merge.outputs.current == 'true'
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           persist-credentials: false
       - uses: actions/setup-dotnet@v6
+        if: steps.merge.outputs.current == 'true'
         with:
           dotnet-version: '10.x.x'
 
       - name: Install azd
+        if: steps.merge.outputs.current == 'true'
         uses: Azure/setup-azd@v2
 
       - name: Azure login
+        if: steps.merge.outputs.current == 'true'
         uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -180,9 +206,11 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: azd login
+        if: steps.merge.outputs.current == 'true'
         run: azd auth login --federated-credential-provider github --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Publish
+        if: steps.merge.outputs.current == 'true'
         env:
           AZURE_LOCATION: 'australiaeast'
           AZURE_RESOURCE_GROUP: 'rg-niobium-store-prod'
@@ -212,12 +240,14 @@ jobs:
           azd deploy --no-prompt
 
       - name: Deploy assets
+        if: steps.merge.outputs.current == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy "./assets" --project-name="assets-store-niobium-co-nz" --branch=main
       - name: Run production read-only verification
+        if: steps.merge.outputs.current == 'true'
         env:
           READONLY_BASE_URL: https://${{ secrets.CUSTOM_DOMAIN_NAME }}
           READONLY_EXPECTED_COMMIT: ${{ github.event.pull_request.merge_commit_sha }}

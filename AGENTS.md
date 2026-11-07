@@ -45,6 +45,8 @@ feature branch from current main and preserve other work.
 - A merged PR deploys its actual merge commit to production and publishes changed
   Contracts. Monitor both workflows to terminal success, including production
   read-only verification; investigate failures through the same feature/PR process.
+  A superseded production run skips deployment after checking main under its queue
+  lock; follow the newer main commit's run instead of treating the skip as a deploy.
 - Repository settings are external. Verify the protections listed in the delivery
   guide; source instructions and automatic review alone do not enforce them.
 
