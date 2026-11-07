@@ -111,6 +111,10 @@ independent deployed harness; do not claim that additional protection is install
 Quote, order and tracking must return JSON with their expected result fields. A
 missing order ID, malformed response or failed tracking assertion fails the suite;
 those failures must never be swallowed by a JSON-parsing catch block.
+If integration fails, the test job queries recent exception types and Niobium
+method names from its existing Application Insights resource. It never exports
+exception messages, request bodies, recipients or provider responses. Diagnostics
+are best effort and do not change the original integration result.
 
 ## Repository settings
 

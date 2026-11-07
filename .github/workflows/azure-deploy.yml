@@ -128,6 +128,7 @@ jobs:
           READONLY_EXPECTED_COMMIT: ${{ github.sha }}
         run: python scripts/read-only-deployment.py --report artifacts/test-deployment.json
       - name: Integration tests
+        id: integration
         working-directory: src/Niobium.Store.IntegrationTests
         env:
           API_URL: 'https://${{ secrets.CUSTOM_DOMAIN_NAME }}'
@@ -136,11 +137,17 @@ jobs:
         run: |
           npm ci
           npm test
+      - name: Collect test failure diagnostics
+        if: failure() && steps.integration.outcome == 'failure'
+        continue-on-error: true
+        run: python scripts/collect-test-diagnostics.py
       - uses: actions/upload-artifact@v4
         if: always() && hashFiles('artifacts/test-deployment.json') != ''
         with:
           name: test-deployment-evidence-${{ github.sha }}
-          path: artifacts/test-deployment.json
+          path: |
+            artifacts/test-deployment.json
+            artifacts/test-diagnostics.json
           if-no-files-found: error
 
   prod:
