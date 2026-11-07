@@ -38,7 +38,9 @@ namespace Niobium.Store.Server
 
             Platform.Functions.DependencyModule.AddPlatform(builder);
             builder.AddFinance();
-            builder.AddDatabase();
+            // The platform registration includes the queryable repositories used by finance.
+            // The generic database-only overload omits them when both namespaces are imported.
+            Niobium.Platform.StorageTable.DependencyModule.AddDatabase(builder);
             builder.AddMessaging();
             builder.AddCaptcha();
             builder.AddCore();

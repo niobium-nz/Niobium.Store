@@ -50,6 +50,22 @@ A source finding for Server's package graph must not be assumed to describe thos
 legacy hosts. Inspect the project actually being built and its restored dependency
 assets before relying on a framework capability.
 
-Only documentation changes are included here. No Store runtime, financial rules,
-package versions, infrastructure or workflows were changed; application tests were
-not rerun. Relative documentation links and whitespace were checked.
+## Register the platform adapter in Store's host
+
+Store's generic `AddStore<TBuilder>` imports both `Niobium.Database.StorageTable`
+and `Niobium.Platform.StorageTable`. In the installed 4.0.60 packages, an unqualified
+`builder.AddDatabase()` selects the generic database-only overload. That registers
+`IRepository<T>` but omits `IQueryableRepository<T>`, which finance resolves lazily
+when initializing a new customer's balance. The resulting exception occurs after
+the order is saved and before its ownership lookup record is written.
+
+[Server registration](../src/Niobium.Store.Server/DependencyModule.cs) explicitly
+calls `Niobium.Platform.StorageTable.DependencyModule.AddDatabase(builder)` to
+include the platform's queryable repositories. The host-registration regression
+test resolves the lazy Accounting and Transaction repositories; constructing the
+domain alone would not exercise those dependencies. Keep registration at the host
+boundary and continue using the shared repositories inside domains and flows.
+
+The original PR #2 investigation was documentation only. The subsequent delivery
+verification in PR #3 exposed the host-registration issue above and added a
+regression test against the installed packages.
