@@ -1,5 +1,9 @@
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
+import { approvedRecipient } from '../fixture-config.js';
+
+// Validate before any request; the workflow supplies an approved test-only secret.
+const testRecipient = approvedRecipient();
 
 // Load helper scripts
 await import(path.resolve(process.cwd(), '../../assets/quote.js'));
@@ -57,19 +61,9 @@ describe('Store quote end-to-end tests', () => {
             true
         );
 
-        // allow common success codes; adjust as needed for your API
-        expect([200, 201, 202, 204]).toContain(response.status);
-
-        // Try to parse JSON response if present
-        const text = await response.text();
-        if (text) {
-            try {
-                const json = JSON.parse(text);
-                expect(json).toBeDefined();
-            } catch (_) {
-                // Not JSON; ignore
-            }
-        }
+        const json = await requireJsonResponse(response, 'quote');
+        const quote = json.quote ?? json.Quote;
+        expect(Array.isArray(quote) && quote.length > 0).toBe(true);
     });
 });
 
@@ -81,7 +75,7 @@ function getOrderDetailsFromEnv() {
         shippingId: Number(process.env.SHIPPING_ID || 1),
         shippingCountry: process.env.COUNTRY || 'AUS',
         consignee: process.env.CONSIGNEE || 'John Doe',
-        email: process.env.EMAIL || 'hcp5he11@gmail.com',
+        email: testRecipient,
         shippingAddressLine1: process.env.SHIP_ADDR1 || '123 Queen St',
         shippingCity: process.env.SHIP_CITY || 'Sydney',
         shippingPostcode: process.env.SHIP_POSTCODE || '1010',
@@ -103,7 +97,7 @@ function getOrderDetailsFromEnv() {
         billingAddressLine2: process.env.BILL_ADDR2 || undefined,
         billingSuburb: process.env.BILL_SUBURB || "City Centre",
         billingState: process.env.BILL_STATE || undefined,
-        marketingSubscription: /^true$/i.test(process.env.MARKETING_SUB || 'true'),
+        marketingSubscription: false,
         track: process.env.TRACK || "fb-123",
 
         // Optional overrides (defaults exist in code if omitted)
@@ -131,42 +125,31 @@ describe('Store order end-to-end tests', () => {
             true
         );
 
-        // allow common success codes; adjust as needed for your API
-        expect([200, 201, 202, 204]).toContain(response.status);
+        const json = await requireJsonResponse(response, 'order');
+        const orderId = Number(json.order ?? json.Order);
+        expect(Number.isSafeInteger(orderId) && orderId > 0).toBe(true);
 
-        // Parse JSON response if present, then track using the returned order id
-        const text = await response.text();
-        if (text) {
-            try {
-                const json = JSON.parse(text);
-                expect(json).toBeDefined();
-
-                // Support either camelCase or PascalCase JSON
-                const orderId = json.order ?? json.Order;
-
-                if (orderId) {
-                    const trackResp = await globalThis.niobium.store.trackOrder(
-                        recaptchaKey,
-                        { email: details.email, order: Number(orderId) },
-                        apiUrl,
-                        true
-                    );
-
-                    expect([200, 201, 202, 204]).toContain(trackResp.status);
-
-                    const trackText = await trackResp.text();
-                    if (trackText) {
-                        try {
-                            const trackJson = JSON.parse(trackText);
-                            expect(trackJson).toBeDefined();
-                        } catch (_) {
-                            // Not JSON; ignore
-                        }
-                    }
-                }
-            } catch (_) {
-                // Not JSON; ignore
-            }
-        }
+        const trackResponse = await globalThis.niobium.store.trackOrder(
+            recaptchaKey,
+            { email: details.email, order: orderId },
+            apiUrl,
+            true
+        );
+        const tracked = await requireJsonResponse(trackResponse, 'tracking');
+        const trackedCart = tracked.cart ?? tracked.Cart;
+        expect(Array.isArray(trackedCart) && trackedCart.length > 0).toBe(true);
     });
 });
+
+async function requireJsonResponse(response, operation) {
+    expect(response.status, `${operation}_status`).toBe(200);
+    let json;
+    try {
+        json = await response.json();
+    } catch {
+        // Do not include response bodies or recipient information in failure logs.
+        throw new Error(`${operation}_invalid_json`);
+    }
+    expect(json !== null && typeof json === 'object' && !Array.isArray(json), `${operation}_object`).toBe(true);
+    return json;
+}

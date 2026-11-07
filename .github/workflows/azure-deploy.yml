@@ -2,33 +2,90 @@ name: Azure Deployment
 
 on:
   push:
-    branches: ["*"]
+    branches: ['**', '!main']
   pull_request:
-    branches: ["main"]
-  workflow_dispatch:
+    branches: [main]
+    types: [closed]
 
 permissions:
-  id-token: write
   contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'push' && 'test-deployment' || 'production-deployment' }}
+  cancel-in-progress: false
+  queue: max
 
 env:
   buildVersion: '${{ vars.MAJOR_VERSION }}.${{ vars.MINOR_VERSION }}.${{ github.run_number }}'
+  SourceRevisionId: ${{ github.event_name == 'push' && github.sha || github.event.pull_request.merge_commit_sha }}
 
 jobs:
+  build:
+    name: Build and local tests
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.x.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Restore and build
+        run: |
+          dotnet restore Niobium.Store.slnx --nologo
+          dotnet build Niobium.Store.slnx --configuration Release --no-restore --nologo
+      - name: Application tests
+        run: dotnet test --project src/Niobium.Store.Core.Tests/Niobium.Store.Core.Tests.csproj --configuration Release --no-build --no-restore --report-trx --results-directory artifacts/unit
+      - name: Delivery policy tests
+        run: |
+          python -m pip install -r scripts/requirements-test.txt
+          python -m unittest discover -s scripts -p 'test_*.py'
+          node --test scripts/*.test.cjs src/Niobium.Store.IntegrationTests/fixture-config.test.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: local-test-evidence-${{ github.sha }}
+          path: artifacts/unit/
+          if-no-files-found: error
+
   test:
+    name: Deploy test and run integration
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    needs: build
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     environment: 'test'
-    concurrency:
-      group: test-deploy
-      cancel-in-progress: false
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.x.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify test fixture configuration
+        env:
+          TEST_ENVIRONMENT: test
+          TEST_NOTIFICATION_RECIPIENT: ${{ secrets.TEST_NOTIFICATION_RECIPIENT }}
+        run: node src/Niobium.Store.IntegrationTests/fixture-config.js
+
       - name: Install azd
         uses: Azure/setup-azd@v2
-        
+
       - name: Azure login
         uses: azure/login@v3
         with:
@@ -64,27 +121,47 @@ jobs:
           azd package --no-prompt
           azd provision --no-state --no-prompt
           azd deploy --no-prompt
-      
+
+      - name: Verify deployed test commit
+        env:
+          READONLY_BASE_URL: https://${{ secrets.CUSTOM_DOMAIN_NAME }}
+          READONLY_EXPECTED_COMMIT: ${{ github.sha }}
+        run: python scripts/read-only-deployment.py --report artifacts/test-deployment.json
       - name: Integration tests
         working-directory: src/Niobium.Store.IntegrationTests
         env:
           API_URL: 'https://${{ secrets.CUSTOM_DOMAIN_NAME }}'
+          TEST_ENVIRONMENT: test
+          TEST_NOTIFICATION_RECIPIENT: ${{ secrets.TEST_NOTIFICATION_RECIPIENT }}
         run: |
-          npm install
+          npm ci
           npm test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-deployment-evidence-${{ github.sha }}
+          path: artifacts/test-deployment.json
+          if-no-files-found: error
 
   prod:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+    name: Deploy production and run read-only verification
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     environment: 'prod'
-    concurrency:
-      group: production-deploy
-      cancel-in-progress: false
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.x.x'
+
       - name: Install azd
         uses: Azure/setup-azd@v2
 
@@ -126,10 +203,21 @@ jobs:
           azd package --no-prompt
           azd provision --no-state --no-prompt
           azd deploy --no-prompt
-      
+
       - name: Deploy assets
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy "./assets" --project-name="assets-store-niobium-co-nz" --branch=main
+      - name: Run production read-only verification
+        env:
+          READONLY_BASE_URL: https://${{ secrets.CUSTOM_DOMAIN_NAME }}
+          READONLY_EXPECTED_COMMIT: ${{ github.event.pull_request.merge_commit_sha }}
+        run: python scripts/read-only-deployment.py --report artifacts/production-read-only.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-read-only-evidence-${{ github.event.pull_request.merge_commit_sha }}
+          path: artifacts/production-read-only.json
+          if-no-files-found: error

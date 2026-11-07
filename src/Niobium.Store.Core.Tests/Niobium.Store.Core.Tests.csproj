@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Niobium.Store.Server\Niobium.Store.Server.csproj" />
     <ProjectReference Include="..\Niobium.Store.Core\Niobium.Store.Core.csproj" />
     <ProjectReference Include="..\Niobium.Store.Contracts\Niobium.Store.Contracts.csproj" />
   </ItemGroup>
