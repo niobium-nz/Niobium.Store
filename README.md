@@ -1,4 +1,7 @@
 # Introduction 
+
+Read [rich domains and data access](docs/domain-data-access.md) before business or persistence changes.
+
 TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
 
 # Getting Started
