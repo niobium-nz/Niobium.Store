@@ -29,7 +29,7 @@ jobs:
       uses: actions/checkout@v7
       with:
         ref: ${{ github.event.pull_request.merge_commit_sha }}
-        fetch-depth: 2
+        fetch-depth: 0
 
     - name: Identify changed package projects
       id: changes
@@ -37,7 +37,8 @@ jobs:
       with:
         script: |
           core.setOutput('contracts', require('./scripts/package-policy.cjs')
-            .contractsChanged(context.payload.pull_request.merge_commit_sha));
+            .contractsChanged(context.payload.pull_request.merge_commit_sha,
+              context.payload.pull_request.base.sha));
 
     - name: Setup .NET
       if: steps.changes.outputs.contracts == 'true'

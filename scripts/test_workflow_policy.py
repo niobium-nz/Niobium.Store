@@ -78,7 +78,8 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.assertEqual(set(config['on']), {'pull_request'})
         self.assertEqual(set(config['jobs']), {'prod-release'})
         steps = config['jobs']['prod-release']['steps']
-        self.assertEqual(steps[0]['with']['fetch-depth'], '2')
+        self.assertEqual(steps[0]['with']['fetch-depth'], '0')
+        self.assertIn('context.payload.pull_request.base.sha', steps[1]['with']['script'])
         for step in steps:
             if step.get('name') in ['Setup .NET', 'Restore Packages', 'Build Projects', 'NuGet login (OIDC)', 'NuGet Publish']:
                 self.assertEqual(step['if'], "steps.changes.outputs.contracts == 'true'")

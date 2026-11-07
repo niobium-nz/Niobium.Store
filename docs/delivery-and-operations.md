@@ -76,10 +76,16 @@ paths, redirects, malformed/oversized responses and mismatched commits.
 Workflow-wide test concurrency covers build, deployment and integration so another
 feature deployment cannot replace the host during verification. Production and
 package publishing have separate queues. `cancel-in-progress: false` and `queue: max`
-preserve pending runs. Feature prerelease publication is removed; a Contracts tree
-comparison with the merge's first parent determines whether release work is needed.
+retain up to 100 pending runs; additional runs are canceled when that queue is full.
+This is supported by GitHub's current
+[concurrency reference](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency).
+Feature prerelease publication is removed; a Contracts tree comparison between the
+closed event's pre-merge `base.sha` and actual `merge_commit_sha` determines whether
+release work is needed. Fetch complete history and validate ancestry. Comparing
+only the merge's first parent would miss earlier changes in a multi-commit rebase
+merge; the full range also correctly excludes changes reverted within the PR.
 Unchanged Contracts skips restore/build, NuGet login and publication. Missing merge
-history fails rather than silently reporting no change.
+history or an invalid base fails rather than silently reporting no change.
 
 ## Test environment and limits
 
