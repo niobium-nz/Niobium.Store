@@ -24,6 +24,8 @@ feature branch from current main and preserve other work.
   and application tests, test deployment, commit verification and the existing
   Store integration suite. Wait for the current commit's complete result; fix
   failures and do not substitute local success, an older run or skipped checks.
+  An external configuration blocker may be documented in a draft PR for review;
+  keep it draft until the required verification succeeds.
 - After successful verification, the implementation agent creates or reuses the
   PR and requests `5he11` when `niobium-nz` is the author (`niobium-nz` otherwise).
   Verify the recorded request. Do not wait for a workflow to create the PR.

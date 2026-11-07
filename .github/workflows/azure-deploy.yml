@@ -137,7 +137,7 @@ jobs:
           npm ci
           npm test
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('artifacts/test-deployment.json') != ''
         with:
           name: test-deployment-evidence-${{ github.sha }}
           path: artifacts/test-deployment.json
@@ -216,7 +216,7 @@ jobs:
           READONLY_EXPECTED_COMMIT: ${{ github.event.pull_request.merge_commit_sha }}
         run: python scripts/read-only-deployment.py --report artifacts/production-read-only.json
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('artifacts/production-read-only.json') != ''
         with:
           name: production-read-only-evidence-${{ github.event.pull_request.merge_commit_sha }}
           path: artifacts/production-read-only.json

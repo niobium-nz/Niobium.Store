@@ -14,6 +14,9 @@ administration and native Codex settings remain separate configuration.
    and delivery-policy tests, deploys to the existing `test` environment, verifies
    `/health` reports the feature SHA, and runs the Store integration suite. A failed,
    skipped or pending required step is not success. Fix failures before review.
+   If an external setting blocks verification, a draft PR may expose the concrete
+   change and blocker for early review. Keep it draft until verification succeeds;
+   any manual Codex review of that draft must be identified as manual.
 3. After success, the author creates/reuses a ready PR to `main` and requests the
    designated reviewer: `5he11` for `niobium-nz` authorship, otherwise `niobium-nz`.
    The implementation agent creates the PR through GitHub tools and verifies that
