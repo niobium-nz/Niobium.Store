@@ -16,6 +16,12 @@ Respect the user's current authorization and preserve unrelated work.
 
 ## Delivery and review
 
+Read [PR approval handoff](docs/pr-approval-handoff.md) before submitting a PR or
+reporting an approval blocker. Explicitly invoke a separate `pr_approver` agent
+for a missing formal current-head decision. A reviewer assignment and native
+review findings do not invoke or replace it. Pending review is active work;
+continue through fixes, approval, merge and production/package verification.
+
 Read [delivery and operations](docs/delivery-and-operations.md) before pushing,
 opening a PR or merging. Record the branch, commit and working-tree state; use a
 feature branch from current main and preserve other work.
@@ -30,14 +36,17 @@ feature branch from current main and preserve other work.
   PR and requests `5he11` when `niobium-nz` is the author (`niobium-nz` otherwise).
   Verify the recorded request. Do not wait for a workflow to create the PR.
 - The owner confirmed native Codex automatic review for all PRs and every push
-  on 2026-11-07. The native GitHub reviewer is the separate review agent. Verify
+  on 2026-11-07. The native GitHub reviewer supplies code/security findings. Verify
   its code/security receipts for the exact head, then read every review, inline
   thread and conversation comment. A manual mention is a recovery action, not
   evidence that the automatic trigger ran.
 - Keep actively monitoring reviews, address actionable findings, push fixes and
   repeat tests and review for the new head. A ready PR with no comments yet is
   not completion. The implementation agent must not submit its own reviewer
-  decision as `5he11`; native comments/reactions are not formal GitHub approval.
+  decision as `5he11`; the separate `pr_approver` agent must independently inspect
+  the change and evidence and record its own current-head decision through the
+  verified authorized connection. Native comments/reactions are not formal approval.
+  Do not direct a rubber stamp or mark the goal blocked merely while review is pending.
 - Before merging, require current-head approval, resolved review issues, green
   current-head checks and an up-to-date main ancestor. Verify the proposed merge
   tree equals the tested tree, then squash merge with an expected-head SHA,
