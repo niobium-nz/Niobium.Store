@@ -26,7 +26,12 @@ administration and native Codex settings remain separate configuration.
    inline threads and conversation comments. Address actionable findings, push
    fixes and repeat testing and review. Keep monitoring while review is pending;
    a quiet PR or a completed code review does not replace required approval.
-5. Before merging, obtain one valid formal approval of the current head, resolve
+5. Explicitly invoke the separate `pr_approver` agent using [the approval handoff](pr-approval-handoff.md).
+   Give it the exact head and verification evidence for an independent decision;
+   a GitHub reviewer assignment does not invoke it. It must verify the authorized
+   review identity and submit its own formal current-head decision. Pending review
+   is active work, not a reason to stop the goal or request repeated authorization.
+   Before merging, verify one valid formal approval of the current head, resolve
    review issues, verify the current test run and main ancestry, and compare the
    proposed merge tree with the tested tree. Squash merge through the connector
    with the expected head SHA once those conditions are satisfied. Do not ask for
@@ -52,11 +57,16 @@ the owner's confirmation supplies the saved scope/trigger settings. Verify a new
 receipt after every subsequent push. The connector cannot inspect or change
 [native Codex settings](https://chatgpt.com/settings/code-review).
 
-The native GitHub reviewer supplies the separate agent review. Requesting `5he11`
-assigns the formal reviewer; it does not configure Codex triggers. Native findings
+The native GitHub reviewer supplies automatic code/security findings. Requesting
+`5he11` assigns the GitHub reviewer; it does not configure Codex triggers or invoke
+an approval agent. The owner reaffirmed the explicit separate `pr_approver` handoff
+on 2026-11-12 after the implementation stopped at this gap. Follow [the repository's
+versioned procedure](pr-approval-handoff.md) for its independent formal decision. Native findings
 or thumbs-up reactions are not formal current-head approval. A manual `@codex review`
 request can recover missing execution, but must be recorded as manual. Do not
 silently replace native review with a polling task or duplicate implementation chat.
+The formal approval handoff is required separately; the implementation agent must
+not self-approve, dictate the verdict or treat pending review as an external blocker.
 
 ## Workflow events and commit identity
 
