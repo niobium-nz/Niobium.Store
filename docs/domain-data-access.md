@@ -1,5 +1,9 @@
 # Domain model and data access in Store
 
+Read [model names and contract ownership](model-contracts.md) for the required
+business-key naming and private representation boundary. Models own identity,
+encoding and file/wire formats; rich domains own business decisions and mutations.
+
 Reviewed at `1db8661ad7f3ea763e57bf8365bce4b362c77713` while addressing
 [Notification PR #2](https://github.com/niobium-nz/Niobium.Notification/pull/2).
 This is source guidance, not a new certification of payment or delivery behavior.
