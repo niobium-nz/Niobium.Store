@@ -80,3 +80,12 @@ Production verification permits only same-origin `GET /health`, with no test
 recipient or order credentials. Never run quote, order, tracking, payment,
 subscription, sending or cleanup operations as a production verification test.
 Keep Niobium package references unchanged unless an upgrade is explicitly scoped.
+
+## Azure resource naming
+
+Use `rg-niobium-<service-slug>-<env>` for resource groups and
+`<prefix>-<abbr>-<env>` for named service resources such as Functions and
+vaults. Functions host/package storage uses `<prefix>sts<env>` and application
+data storage uses `<prefix>std<env>`.
+Store uses the service slug `store` and compact prefix `niobiumstore`.
+[Shared Azure naming guide](https://github.com/niobium-nz/Niobium.DevOps/blob/main/docs/azure-resource-naming.md)
